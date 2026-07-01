@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Adventure v2.0</title>
+    <style>
+        /* ==========================================================================
+           VARIABLES DE DISEÑO & PALETA DE COLORES (Estilo Duolingo/Kahoot)
+           ========================================================================== */
+        :root {
+            --primary: #58cc02;
+            --primary-dark: #46a302;
+            --secondary: #1cb0f6;
+            --secondary-dark: #1899d6;
+            --accent: #ffc800;
+            --accent-dark: #e6b400;
+            --wrong: #ea2b2b;
+            --correct: #58cc02;
+            --bg-main: #f7f7f7;
+            --text-dark: #3c3c3c;
+            --text-light: #afafaf;
+            --card-shadow: 0 8px 0px rgba(0,0,0,0.1);
+            --font-stack: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* ==========================================================================
+           ESTILOS GENERALES Y RESET
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            padding-bottom: 60px;
+        }
+
+        /* ==========================================================================
+           COMPONENTES DE INTERFAZ REUTILIZABLES (BOTONES Y TARJETAS)
+           ========================================================================== */
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-align: center;
+            box-shadow: 0 4px 0px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-secondary:hover { background: var(--secondary-dark); }
+
+        .btn-accent { background: var(--accent); color: var(--text-dark); }
+        .btn-accent:hover { background: var(--accent-dark); }
+
+        .btn-disabled { background: #e5e5e5; color: #afafaf; cursor: not-allowed; box-shadow: none; }
+        .btn-disabled:active { transform: none; }
+
+        .card {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* ==========================================================================
+           HEADER & NAV BAR
+           ========================================================================== */
+        header {
+            background: white;
+            border-bottom: 2px solid #e5e5e5;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            color: var(--secondary);
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .global-stats {
+            display: flex;
+            gap: 20px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Switch de Modo Profesor */
+        .teacher-switch-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            background: #edf7ff;
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 2px solid #bee3f8;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--secondary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* ==========================================================================
+           CONTENEDOR PRINCIPAL Y VISTAS
+           ========================================================================== */
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==========================================================================
+           VISTA 1: MAPA DE AVENTURA (10 NIVELES)
+           ========================================================================== */
+        .map-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 40px 0;
+        }
+
+        /* Línea del sendero del mapa */
+        .map-path {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: #e5e5e5;
+            z-index: 1;
+        }
+
+        .level-node {
+            position: relative;
+            z-index: 2;
+            margin: 25px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .level-bubble {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #e5e5e5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #afafaf;
+            cursor: not-allowed;
+            box-shadow: 0 6px 0 #e5e5e5;
+            transition: all 0.1s ease;
+        }
+
+        .level-node.unlocked .level-bubble {
+            background: var(--secondary);
+            border-color: var(--secondary-dark);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--secondary-dark);
+        }
+
+        .level-node.completed .level-bubble {
+            background: var(--primary);
+            border-color: var(--primary-dark);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--primary-dark);
+        }
+
+        .level-node.unlocked .level-bubble:active, .level-node.completed .level-bubble:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        .level-info-box {
+            background: white;
+            border: 2px solid #e5e5e5;
+            padding: 8px 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            text-align: center;
+            min-width: 180px;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.05);
+        }
+
+        .level-title { font-weight: bold; font-size: 14px; }
+        .level-stars { color: var(--accent); font-size: 14px; margin-top: 2px; }
+
+        /* Zig-zag alternado en pantallas grandes */
+        @media(min-width: 768px) {
+            .level-node:nth-child(even) { transform: translateX(-120px); }
+            .level-node:nth-child(odd) { transform: translateX(120px); }
+        }
+
+        /* Barra de Progreso Superior en el Mapa */
+        .progress-banner {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .progress-bar-container {
+            flex-grow: 1;
+            background: #e5e5e5;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #76e211);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* ==========================================================================
+           VISTA 2: ENTORNO DE CLASE FLUJO DE APRENDIZAJE paso a paso
+           ========================================================================== */
+        .class-structure-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step-indicator-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .step-dot {
+            height: 8px;
+            background: #e5e5e5;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .step-dot.active { background: var(--secondary); }
+        .step-dot.completed { background: var(--primary); }
+
+        .teacher-box {
+            background: #eef9ff;
+            border: 2px solid #bce3ff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .teacher-avatar {
+            font-size: 50px;
+            background: white;
+            padding: 10px;
+            border-radius: 50%;
+            border: 2px solid #bce3ff;
+            line-height: 1;
+        }
+
+        .teacher-speech {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #186590;
+        }
+
+        .content-box {
+            min-height: 250px;
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* Estructura de Listas de Ejemplos */
+        .example-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .example-item {
+            background: #fdfdfd;
+            border: 2px solid #f0f0f0;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .example-eng { font-weight: bold; color: var(--secondary-dark); font-size: 18px; }
+        .example-esp { color: #666; font-size: 15px; }
+
+        .audio-icon-btn {
+            background: #edf7ff;
+            border: 2px solid #bee3f8;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .audio-icon-btn:hover { background: #dbf0ff; }
+
+        /* ==========================================================================
+           TIPOS DE DINÁMICAS INTERACTIVAS DE ACTIVIDAD
+           ========================================================================== */
+        /* Opción Múltiple Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        @media(min-width: 600px) {
+            .options-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .option-card {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 16px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 0 #e5e5e5;
+            text-align: center;
+        }
+
+        .option-card:hover { background: #fafdff; border-color: var(--secondary); }
+        .option-card.selected {
+            background: #ddf4ff;
+            border-color: var(--secondary);
+            color: var(--secondary-dark);
+            box-shadow: 0 4px 0 var(--secondary);
+        }
+
+        /* Estructuras de Drag and Drop */
+        .drag-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .drag-item {
+            background: white;
+            border: 2px solid #e5e5e5;
+            padding: 12px 24px;
+            border-radius: 14px;
+            cursor: grab;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #e5e5e5;
+            font-size: 18px;
+        }
+
+        .drag-item:active { cursor: grabbing; }
+
+        .drop-zone {
+            border: 3px dashed #cbd5e1;
+            background: #f8fafc;
+            min-height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            font-weight: bold;
+            color: #94a3b8;
+            margin-top: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .drop-zone.hover { background: #edf7ff; border-color: var(--secondary); }
+        .drop-zone .drag-item { margin: 0; cursor: default; box-shadow: none; }
+
+        /* Estructura para Dinámica de Relacionar Columnas */
+        .matching-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .match-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .match-element {
+            background: white;
+            border: 2px solid #e5e5e5;
+            padding: 15px;
+            border-radius: 14px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #e5e5e5;
+        }
+
+        .match-element.selected {
+            background: #fff3cd;
+            border-color: var(--accent);
+            box-shadow: 0 4px 0 var(--accent-dark);
+        }
+
+        .match-element.paired {
+            background: #e2fcd5;
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            box-shadow: none;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Inputs de escritura directa text area o caja text */
+        .text-input-field {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: 2px solid #e5e5e5;
+            font-size: 18px;
+            font-family: inherit;
+            margin-top: 15px;
+            outline: none;
+        }
+
+        .text-input-field:focus { border-color: var(--secondary); }
+
+        /* Bloques de Retroalimentación en Actividades */
+        .feedback-panel {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 16px;
+            display: none;
+            font-weight: bold;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .feedback-panel.correct { background: #d7f7c2; color: #257200; border: 2px solid #b2e693; display: block; }
+        .feedback-panel.wrong { background: #ffdfe0; color: #ea2b2b; border: 2px solid #ffb3b5; display: block; }
+
+        .explanation-text {
+            font-weight: normal;
+            font-size: 14px;
+            margin-top: 5px;
+            color: #555;
+        }
+
+        /* ==========================================================================
+           SECCIÓN ACUMULATIVA: MY VOCABULARY
+           ========================================================================== */
+        .vocab-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media(min-width: 650px) {
+            .vocab-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .vocab-card {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.02);
+        }
+
+        .vocab-meta h4 { color: var(--secondary-dark); font-size: 18px; margin-bottom: 2px; }
+        .vocab-meta .esp { color: #555; font-size: 14px; margin-bottom: 4px; }
+        .vocab-meta .ex { font-size: 13px; font-style: italic; color: #888; }
+
+        /* ==========================================================================
+           PANTALLA FINAL: RENDERING DE DIPLOMA Y GRADUACIÓN
+           ========================================================================== */
+        .diploma-wrapper {
+            background: white;
+            border: 10px double #c99738;
+            padding: 40px;
+            border-radius: 4px;
+            text-align: center;
+            max-width: 750px;
+            margin: 30px auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .diploma-wrapper::before {
+            content: "★ ★ ★";
+            color: #c99738;
+            font-size: 24px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .diploma-title { font-family: 'Georgia', serif; font-size: 36px; color: #1a365d; margin-bottom: 10px; }
+        .diploma-subtitle { font-size: 16px; text-transform: uppercase; letter-spacing: 2px; color: #718096; margin-bottom: 30px; }
+        .diploma-name { font-family: 'Georgia', serif; font-size: 28px; font-weight: bold; border-bottom: 2px solid #c99738; display: inline-block; padding: 5px 40px; margin-bottom: 30px; color: #2d3748; }
+        .diploma-text { font-size: 18px; line-height: 1.6; color: #4a5568; max-width: 550px; margin: 0 auto 30px auto; }
+        .diploma-stamp { font-size: 50px; margin-bottom: 10px; }
+
+        .final-stats-strip {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 25px 0;
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .final-stat-val { font-size: 24px; font-weight: bold; color: var(--secondary-dark); }
+        .final-stat-lbl { font-size: 12px; color: #718096; text-transform: uppercase; }
+
+        /* Estilos de Impresión Exclusivos para el Diploma */
+        @media print {
+            body * { visibility: hidden; }
+            .diploma-wrapper, .diploma-wrapper * { visibility: visible; }
+            .diploma-wrapper { position: absolute; left: 0; top: 0; width: 100%; border: 10px double #c99738; box-shadow: none; }
+        }
+
+        /* Barra de navegación inferior */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 60px;
+            background: white;
+            border-top: 2px solid #e5e5e5;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-light);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            gap: 3px;
+        }
+
+        .nav-tab.active { color: var(--secondary); }
+        .nav-tab-icon { font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <h1>English Adventure</h1>
+        </div>
+        <div class="global-stats">
+            <div class="stat-item" title="Estrellas recolectadas">
+                <span>⭐</span> <span id="global-star-count">0</span>
+            </div>
+            <div class="stat-item" title="Palabras en mi vocabulario">
+                <span>📚</span> <span id="global-vocab-count">0</span>
+            </div>
+        </div>
+        <div class="teacher-switch-container">
+            <span>Teacher Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="teacher-mode-toggle" checked onchange="app.toggleTeacherMode()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div id="view-map" class="view active">
+            <div class="progress-banner">
+                <div style="font-weight: bold;">
+                    <div>Progreso del Mapa</div>
+                    <div style="font-size: 24px; color: var(--primary);" id="progress-percentage-text">0%</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="map-progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="map-container">
+                <div class="map-path"></div>
+                <div id="map-nodes-target" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <div id="view-class" class="view">
+            <div class="card" style="margin-bottom: 15px; padding: 15px;">
+                <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px; border-radius: 10px;" onclick="app.exitToMap()">↩ Volver al Mapa</button>
+                <span id="class-view-title" style="font-weight: bold; margin-left: 20px; font-size: 18px; color: var(--secondary-dark);"></span>
+            </div>
+
+            <div class="step-indicator-bar" id="step-indicator-bar">
+                <div class="step-dot" id="dot-0"></div>
+                <div class="step-dot" id="dot-1"></div>
+                <div class="step-dot" id="dot-2"></div>
+                <div class="step-dot" id="dot-3"></div>
+                <div class="step-dot" id="dot-4"></div>
+            </div>
+
+            <div class="class-structure-container">
+                <div class="teacher-box" id="dynamic-teacher-box">
+                    <div class="teacher-avatar">👩‍🏫</div>
+                    <div class="teacher-speech" id="teacher-speech-text">¡Hola! Vamos a empezar esta aventura de aprendizaje hoy.</div>
+                </div>
+
+                <div class="card content-box" id="class-content-core">
+                    </div>
+
+                <div class="feedback-panel" id="action-feedback-panel">
+                    <div id="feedback-main-message">¡Excelente trabajo!</div>
+                    <div class="explanation-text" id="feedback-explanation-text">Explicación conceptual aquí.</div>
+                </div>
+
+                <div class="nav-controls">
+                    <button class="btn btn-secondary" id="btn-flow-back" onclick="app.flowPrevious()">Atrás</button>
+                    <button class="btn btn-primary" id="btn-flow-next" onclick="app.flowNext()">Siguiente</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-vocabulary" class="view">
+            <div class="vocab-header-actions">
+                <h2>My Vocabulary 📚</h2>
+                <button class="btn btn-secondary" style="padding: 8px 16px;" onclick="app.downloadVocabularyJSON()">Guardar Vocabulario (JSON)</button>
+            </div>
+            <p style="margin-bottom: 20px; color: #666;">Todas las palabras que aprendes a lo largo de las lecciones se guardan automáticamente aquí.</p>
+            <div class="vocab-grid" id="vocab-cards-grid">
+                </div>
+        </div>
+
+        <div id="view-final" class="view">
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <h1 style="color: var(--primary); font-size: 42px; margin-bottom: 10px;">Congratulations! 🎉</h1>
+                <p style="font-size: 20px; font-weight: bold; color: #555;">¡Has completado exitosamente todo el mapa de aventuras!</p>
+                
+                <div class="final-stats-strip">
+                    <div>
+                        <div class="final-stat-val">100%</div>
+                        <div class="final-stat-lbl">Progreso</div>
+                    </div>
+                    <div>
+                        <div class="final-stat-val" id="final-stars-val">0</div>
+                        <div class="final-stat-lbl">Estrellas</div>
+                    </div>
+                    <div>
+                        <div class="final-stat-val" id="final-vocab-val">0</div>
+                        <div class="final-stat-lbl">Palabras</div>
+                    </div>
+                </div>
+
+                <div class="diploma-wrapper" id="printable-diploma">
+                    <div class="diploma-title">Diploma of Excellence</div>
+                    <div class="diploma-subtitle">English Adventure Platform</div>
+                    <p style="font-size: 14px; color: #718096; font-style: italic;">Certificado otorgado con honores a:</p>
+                    <div class="diploma-name" id="diploma-student-name">Estudiante de 4to Grado</div>
+                    <div class="diploma-text">
+                        Por haber superado con dedicación y entusiasmo los 10 niveles interactivos del mapa de estudio, dominando estructuras gramaticales, comprensión lectora, expresión escrita y vocabulario especializado en inglés.
+                    </div>
+                    <div class="diploma-stamp">🏆</div>
+                    <div style="font-size: 12px; color: #a0aec0; font-family: monospace;">Verification Code: EA2.0-COMPLETED-2026</div>
+                </div>
+
+                <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
+                    <button class="btn btn-accent" onclick="window.print()">🖨️ Imprimir Diploma</button>
+                    <button class="btn btn-primary" onclick="app.resetProgress()">🔄 Reiniciar Progreso</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-tab active" id="tab-map" onclick="app.switchTab('map')">
+            <span class="nav-tab-icon">🗺️</span>
+            <span>Aventura</span>
+        </div>
+        <div class="nav-tab" id="tab-vocab" onclick="app.switchTab('vocab')">
+            <span class="nav-tab-icon">📚</span>
+            <span>Vocabulario</span>
+        </div>
+    </nav>
+
+    <script>
+        /**
+         * BANCO DE DATOS DE LAS 10 LECCIONES INTERACTIVAS
+         * Estructura estricta: Aprender, Ejemplos, Actividad, Retroalimentación, Resumen.
+         */
+        const CLASS_DATASET = {
+            1: {
+                title: "Sports Vocabulary",
+                method: "Vocabulary / Speaking",
+                vocabItems: [
+                    { eng: "Basketball", esp: "Baloncesto", ex: "I play basketball on Fridays.", pr: "Basketbol" },
+                    { eng: "Swimming", esp: "Natación", ex: "Swimming is a complete sport.", pr: "Suiming" },
+                    { eng: "Tennis", esp: "Tenis", ex: "She hits the tennis ball.", pr: "Tenis" }
+                ],
+                teacherIntro: "¡Hola! Hoy aprenderemos los nombres de diferentes deportes en inglés. Los deportes nos mantienen saludables y con mucha energía.",
+                explain: "<h2>Sports Vocabulary</h2><p style='margin-top:10px;'>Para hablar de deportes en inglés, usamos palabras específicas para cada disciplina. Algunos deportes usan una pelota (like basketball o tennis) y otros son disciplinas físicas de movimiento continuo (like swimming).</p>",
+                examples: [
+                    { eng: "Football", esp: "Fútbol (I love playing football with friends)" },
+                    { eng: "Running", esp: "Correr (Running in the park is healthy)" },
+                    { eng: "Cycling", esp: "Ciclismo (Cycling is my favorite weekend activity)" }
+                ],
+                activity: {
+                    type: "multiple-choice",
+                    question: "¿Qué deporte se practica en una piscina y requiere nadar?",
+                    options: ["Basketball", "Tennis", "Swimming", "Football"],
+                    correct: "Swimming",
+                    explanation: "Swimming se traduce directamente como natación y es el deporte que se realiza dentro del agua.",
+                    teacherTip: "Consejo para el profesor: Pida a los estudiantes que imiten los movimientos de nadar mientras pronuncian 'Swimming'."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>Hoy expandimos nuestro vocabulario con deportes clave como Football, Basketball, Tennis, Running y Swimming. ¡Recuerda practicarlos a diario!</p>"
+            },
+            2: {
+                title: "Good at / Not good at",
+                method: "Grammar / Writing",
+                vocabItems: [
+                    { eng: "Good at", esp: "Bueno en", ex: "I am good at soccer.", pr: "Gud at" },
+                    { eng: "Not good at", esp: "No muy bueno en", ex: "He is not good at drawing.", pr: "Not gud at" }
+                ],
+                teacherIntro: "¡Excelente! Ahora veremos cómo expresar las habilidades en las que brillamos y aquellas que nos cuestan un poco de trabajo usando 'Good at' y 'Not good at'.",
+                explain: "<h2>Grammar: Expresar Habilidades</h2><p style='margin-top:10px;'>Cuando quieres decir que tienes talento para una actividad, usas la estructura <b>Subject + am/is/are + good at + noun/verb(-ing)</b>. Si no tienes facilidad, agregas el <b>not</b> antes de la palabra good.</p>",
+                examples: [
+                    { eng: "I am good at English.", esp: "Yo soy bueno en inglés." },
+                    { eng: "She is not good at cooking.", esp: "Ella no es buena cocinando." },
+                    { eng: "They are good at dancing.", esp: "Ellos son buenos bailando." }
+                ],
+                activity: {
+                    type: "drag-drop",
+                    question: "Ordena las palabras para formar una oración correcta de habilidad positiva:",
+                    pool: ["good", "at", "I", "am", "cooking"],
+                    correctOrder: ["I", "am", "good", "at", "cooking"],
+                    explanation: "La estructura correcta inicia con el sujeto (I), el verbo be (am), el adjetivo de habilidad (good at) y finalmente la actividad (cooking).",
+                    teacherTip: "Consejo pedagógico: Enfatice que después de 'at', si usamos un verbo, este debe terminar siempre en -ing."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>Aprendimos a describir talentos propios y ajenos. Usamos 'good at' para fortalezas y 'not good at' para debilidades de forma respetuosa.</p>"
+            },
+            3: {
+                title: "Present Continuous",
+                method: "Grammar / Reading",
+                vocabItems: [
+                    { eng: "Reading", esp: "Leyendo", ex: "I am reading a book.", pr: "Riding" },
+                    { eng: "Writing", esp: "Escribiendo", ex: "She is writing a letter.", pr: "Raiting" }
+                ],
+                teacherIntro: "¡Bienvenidos al tiempo de la acción! El Presente Continuo nos ayuda a hablar de cosas que están pasando exactamente en este mismo instante.",
+                explain: "<h2>Present Continuous</h2><p style='margin-top:10px;'>Se compone usando el verbo auxiliar <b>To Be</b> (am, is, are) seguido del verbo principal con la terminación <b>-ING</b>. Esta terminación equivale al 'ando' o 'endo' en español.</p>",
+                examples: [
+                    { eng: "You are learning English now.", esp: "Tú estás aprendiendo inglés ahora." },
+                    { eng: "The dog is jumping.", esp: "El perro está saltando." },
+                    { eng: "We are playing a game.", esp: "Nosotros estamos jugando un juego." }
+                ],
+                activity: {
+                    type: "multiple-choice",
+                    question: "Completa la oración: 'Look! She _______ a book in the garden.'",
+                    options: ["is reading", "are reading", "am reading", "reads"],
+                    correct: "is reading",
+                    explanation: "Para la tercera persona del singular 'She', el verbo To Be correspondiente es 'is', acompañado de 'reading'.",
+                    teacherTip: "Guía docente: Explique que palabras clave como 'Look!' o 'Listen!' indican que la acción está ocurriendo en tiempo real."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>El presente continuo describe acciones en curso. Recuerda la fórmula dorada: Sujeto + Verbo Be + Verbo con -ing.</p>"
+            },
+            4: {
+                title: "Adverbs of Manner",
+                method: "Grammar / Writing",
+                vocabItems: [
+                    { eng: "Quickly", esp: "Rápidamente", ex: "He runs quickly.", pr: "Cuicli" },
+                    { eng: "Slowly", esp: "Lentamente", ex: "The turtle walks slowly.", pr: "Slouli" },
+                    { eng: "Happily", esp: "Alegremente", ex: "They sing happily.", pr: "Japili" }
+                ],
+                teacherIntro: "¡Hola! Hoy veremos los adverbios de modo. Nos sirven para explicar *cómo* se realiza una acción específica.",
+                explain: "<h2>Adverbs of Manner</h2><p style='margin-top:10px;'>La mayoría de los adverbios de modo se forman fácilmente agregando la terminación <b>-ly</b> al final de un adjetivo. Equivale a la terminación 'mente' en el idioma español.</p>",
+                examples: [
+                    { eng: "Quick -> Quickly", esp: "Rápido -> Rápidamente" },
+                    { eng: "Slow -> Slowly", esp: "Lento -> Lentamente" },
+                    { eng: "Beautiful -> Beautifully", esp: "Hermoso -> Hermosamente" }
+                ],
+                activity: {
+                    type: "matching",
+                    question: "Relaciona correctamente cada adjetivo de la izquierda con su adverbio de modo correspondiente a la derecha:",
+                    left: ["Quiet", "Loud", "Careful"],
+                    right: ["Loudly", "Carefully", "Quietly"],
+                    pairs: { "Quiet": "Quietly", "Loud": "Loudly", "Careful": "Carefully" },
+                    explanation: "Cada adjetivo añade '-ly' (o '-fully' si termina en ful) para convertirse en el adverbio que describe el modo de la acción.",
+                    teacherTip: "Sugerencia didáctica: Haga un juego de roles donde digan una frase en voz baja para ilustrar 'quietly'."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>Los adverbios modifican los verbos detallando el modo. Adjetivo + -ly nos da la clave para construirlos.</p>"
+            },
+            5: {
+                title: "Adjectives",
+                method: "Reading",
+                vocabItems: [
+                    { eng: "Beautiful", esp: "Hermoso", ex: "The flower is beautiful.", pr: "Biutiful" },
+                    { eng: "Strong", esp: "Fuerte", ex: "An elephant is strong.", pr: "Strong" },
+                    { eng: "Young", esp: "Joven", ex: "The young boy plays video games.", pr: "Iong" }
+                ],
+                teacherIntro: "¡Hola aventurero! Los adjetivos son las palabras mágicas que usamos para pintar el mundo con descripciones detalladas.",
+                explain: "<h2>Los Adjetivos en Inglés</h2><p style='margin-top:10px;'>A diferencia del español, en el inglés los adjetivos **se colocan casi siempre antes del sustantivo** que califican, y nunca cambian de forma para plurales (son invariables).</p>",
+                examples: [
+                    { eng: "A blue car.", esp: "Un carro azul. (No decimos 'A car blue')" },
+                    { eng: "Big houses.", esp: "Casas grandes. (El adjetivo 'big' no se le agrega 's')" },
+                    { eng: "A smart student.", esp: "Un estudiante inteligente." }
+                ],
+                activity: {
+                    type: "multiple-choice",
+                    question: "¿Cuál es la forma correcta de decir 'Un libro verde' en inglés?",
+                    options: ["A book green", "A green book", "Green a book", "A green books"],
+                    correct: "A green book",
+                    explanation: "En inglés, el adjetivo de color ('green') debe anteceder al sustantivo objeto ('book').",
+                    teacherTip: "Nota del profesor: Recuerde a los niños que los adjetivos no tienen género ni número (no hay masculinos ni plurales)."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>Dominamos el orden descriptivo inglés: Adjetivo primero, sustantivo después. Además, recordamos que los adjetivos son invariables.</p>"
+            },
+            6: {
+                title: "WH Questions",
+                method: "Grammar / Speaking",
+                vocabItems: [
+                    { eng: "What", esp: "Qué / Cuál", ex: "What is your name?", pr: "Guat" },
+                    { eng: "Where", esp: "Dónde", ex: "Where do you live?", pr: "Guer" },
+                    { eng: "Who", esp: "Quién", ex: "Who is your teacher?", pr: "Ju" }
+                ],
+                teacherIntro: "¡Momento de convertirnos en detectives! Las preguntas WH nos permiten recolectar información detallada y exacta sobre el mundo.",
+                explain: "<h2>WH Question Words</h2><p style='margin-top:10px;'>Se llaman así porque comienzan con las letras W y H. Cada una tiene una función específica: <b>What</b> busca objetos o acciones, <b>Where</b> busca lugares, y <b>Who</b> busca identificar personas.</p>",
+                examples: [
+                    { eng: "Where is the school?", esp: "¿Dónde está la escuela?" },
+                    { eng: "What are you doing?", esp: "¿Qué estás haciendo?" },
+                    { eng: "Who is your best friend?", esp: "¿Quién es tu mejor amigo?" }
+                ],
+                activity: {
+                    type: "multiple-choice",
+                    question: "Si quiero saber el lugar donde está mi juguete perdido, ¿qué palabra uso?",
+                    options: ["What", "Who", "Where", "When"],
+                    correct: "Where",
+                    explanation: "Where se utiliza de manera exclusiva para preguntar por ubicaciones, locaciones o lugares.",
+                    teacherTip: "Consejo: Practique cantando las tres palabras WH principales para que los alumnos recuerden sus significados diferenciados."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>Las preguntas informativas dependen de la WH-Word correcta: What para cosas, Where para lugares y Who para personas.</p>"
+            },
+            7: {
+                title: "Festival Vocabulary",
+                method: "Listening",
+                vocabItems: [
+                    { eng: "Carnival", esp: "Carnaval", ex: "We dance at the Carnival.", pr: "Carnival" },
+                    { eng: "Costume", esp: "Disfraz", ex: "I wear a superhero costume.", pr: "Costium" },
+                    { eng: "Parade", esp: "Desfile", ex: "The parade goes down the street.", pr: "Pareid" }
+                ],
+                teacherIntro: "¡Llegó la hora de la fiesta! Vamos a aprender términos vibrantes sobre las celebraciones y festivales tradicionales más divertidos del año.",
+                explain: "<h2>Festival Vocabulary</h2><p style='margin-top:10px;'>Las culturas celebran festividades usando desfiles (parades), vestuarios especiales (costumes) y mucha música. Conocer estos términos nos permite compartir nuestras tradiciones en inglés.</p>",
+                examples: [
+                    { eng: "Fireworks", esp: "Fuegos artificiales (Bright lights in the night sky)" },
+                    { eng: "Celebration", esp: "Celebración (A happy party with community)" },
+                    { eng: "Decoration", esp: "Decoración (Balloons and lights on walls)" }
+                ],
+                activity: {
+                    type: "multiple-choice",
+                    question: "Identifica el término inglés para 'Ropa especial que usas para personificar un personaje en Halloween o un festival':",
+                    options: ["Parade", "Costume", "Carnival", "Fireworks"],
+                    correct: "Costume",
+                    explanation: "Costume es la palabra asignada para un disfraz o vestimenta temática de celebración.",
+                    teacherTip: "Sugerencia: Pregunte a los alumnos cuál fue su último 'costume' favorito en el día de niños."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>Aprendimos términos de celebración cultural: Costume, Parade, Carnival y Fireworks. ¡Listos para describir festividades!</p>"
+            },
+            8: {
+                title: "Reading Comprehension",
+                method: "Reading Story",
+                vocabItems: [
+                    { eng: "Forest", esp: "Bosque", ex: "The birds live in the forest.", pr: "Forest" },
+                    { eng: "Friendly", esp: "Amigable", ex: "The cat is very friendly.", pr: "Frendli" }
+                ],
+                teacherIntro: "¡Vamos a sumergirnos en una aventura de lectura! Leer historias nos abre las puertas a mundos mágicos y fantásticos en inglés.",
+                explain: "<h2>Lectura: El Pequeño Koala Solo</h2><p style='margin-top:10px; background:#fafafa; padding:15px; border-left:4px solid var(--secondary); font-style:italic;'>\"Kiko is a small koala. He lives in a big green forest. Kiko is very friendly. Every morning, he eats green leaves and plays with his bird friends. Today, Kiko is happy because the sun is shining beautifully.\"</p>",
+                examples: [
+                    { eng: "Kiko is a koala.", esp: "Kiko es un koala." },
+                    { eng: "He lives in a forest.", esp: "Él vive en un bosque." }
+                ],
+                activity: {
+                    type: "multiple-choice",
+                    question: "Based on the text, why is Kiko happy today?",
+                    options: ["Because he is eating apples", "Because the sun is shining beautifully", "Because he is sleeping", "Because he lives in the city"],
+                    correct: "Because the sun is shining beautifully",
+                    explanation: "El texto dice explícitamente al final: 'Today, Kiko is happy because the sun is shining beautifully.'",
+                    teacherTip: "Guía docente: Anime al estudiante a buscar palabras clave idénticas tanto en la pregunta como en el texto de lectura."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>A través de la historia de Kiko, practicamos la extracción de datos específicos dentro de un texto continuo en inglés.</p>"
+            },
+            9: {
+                title: "Listening Challenge",
+                method: "Listening via Web Speech API",
+                vocabItems: [
+                    { eng: "Listen", esp: "Escuchar", ex: "Listen to the pronunciation.", pr: "Lisen" },
+                    { eng: "Apple", esp: "Manzana", ex: "I like to eat a red apple.", pr: "Apol" }
+                ],
+                teacherIntro: "¡Abre bien tus oídos! En esta lección usaremos la voz real del sistema para entrenar tu comprensión auditiva nativa.",
+                explain: "<h2>La Importancia del Listening</h2><p style='margin-top:10px;'>El inglés se escribe de una forma pero se pronuncia de otra. Presiona el botón del parlante para oír el audio real del sistema y afinar tu oído de detective lingüístico.</p>",
+                examples: [
+                    { eng: "Listen carefully.", esp: "Escucha con atención detenida." }
+                ],
+                activity: {
+                    type: "listening-api",
+                    phraseToSpeak: "I love swimming in the summer",
+                    question: "Escucha la oración reproducida por el sistema y selecciona la opción exacta que escuchaste:",
+                    options: ["I love running in the city", "I love swimming in the summer", "She hates swimming in winter", "I love swimming in the pool"],
+                    correct: "I love swimming in the summer",
+                    explanation: "La API de voz del navegador pronunció exactamente la frase sobre nadar en el verano.",
+                    teacherTip: "Consejo: Si el alumno tiene dificultades, pídale que cierre los ojos al presionar el botón de audio para concentrar la atención."
+                },
+                summary: "<h3>Resumen de la Clase</h3><p style='margin-top:10px;'>El entrenamiento auditivo constante con la API de voz nativa del dispositivo fortalece los canales de reconocimiento del idioma real.</p>"
+            },
+            10: {
+                title: "Writing Challenge",
+                method: "Writing / Production",
+                vocabItems: [
+                    { eng: "Challenge", esp: "Desafío", ex: "This is the final challenge.", pr: "Chalench" }
+                ],
+                teacherIntro: "¡Has llegado a la gran prueba final! Es el momento de demostrar tus habilidades de redacción precisa en inglés.",
+                explain: "<h2>Desafío de Escritura Autónoma</h2><p style='margin-top:10px;'>Escribir de forma correcta requiere prestar atención a la ortografía exacta de cada palabra estudiada. No olvides los espacios ni el orden de las estructuras gramaticales aprendidas.</p>",
+                examples: [
+                    { eng: "Example answer: 'I am good at football'", esp: "Ortografía limpia y precisa." }
+                ],
+                activity: {
+                    type: "writing-validation",
+                    question: "Traduce y escribe completamente en inglés la siguiente oración en la caja de texto inferior: 'Yo soy bueno en el tenis' (Pista: Usa 'I am good at...')",
+                    acceptedAnswers: ["I am good at tennis", "i am good at tennis.", "I am good at tennis."],
+                    correctReference: "I am good at tennis",
+                    explanation: "La traducción exacta requiere el sujeto capitalizado 'I', el verbo 'am', la estructura 'good at' y el deporte exacto 'tennis'.",
+                    teacherTip: "Cierre del Profesor: ¡Felicitaciones por guiar a su estudiante hasta el último nivel del mapa con éxito!"
+                },
+                summary: "<h3>Resumen de la Gran Final</h3><p style='margin-top:10px;'>Completaste el Desafío de Escritura. Has demostrado dominio integral. ¡Estás listo para recibir tu recompensa final!</p>"
+            }
+        };
+
+        /**
+         * MOTOR CENTRAL DE LA APLICACIÓN (STATE MANAGER)
+         */
+        class EnglishAdventureApp {
+            constructor() {
+                // Estado interno reactivo
+                this.currentLevel = 1;
+                this.currentStep = 0; // 0: Aprender, 1: Ejemplos, 2: Actividad, 3: Retroalimentación, 4: Resumen
+                this.teacherMode = true;
+                
+                // Progreso del usuario persistido
+                this.progress = {
+                    unlockedLevel: 1,
+                    starsByLevel: {},
+                    learnedVocabulary: [] // Almacenará objetos {eng, esp, ex, pr} sin repetir
+                };
+
+                this.selectedOption = null; // Track para respuestas de opción múltiple
+                this.draggedItemText = null; // Track para arrastrar elementos
+            }
+
+            /**
+             * Inicializador de la Aplicación
+             */
+            init() {
+                this.loadProgressFromStorage();
+                this.renderMapNodes();
+                this.updateGlobalUIStats();
+                this.setupDragAndDropGlobalListeners();
+            }
+
+            /**
+             * Persistencia: Carga datos desde LocalStorage de forma segura
+             */
+            loadProgressFromStorage() {
+                const localData = localStorage.getItem('english_adventure_v2_progress');
+                if (localData) {
+                    try {
+                        this.progress = JSON.parse(localData);
+                        if(!this.progress.learnedVocabulary) this.progress.learnedVocabulary = [];
+                        if(!this.progress.starsByLevel) this.progress.starsByLevel = {};
+                    } catch (e) {
+                        console.error("Error leyendo LocalStorage, reiniciando estructura estándar.", e);
+                    }
+                }
+            }
+
+            /**
+             * Persistencia: Guarda datos actuales en LocalStorage
+             */
+            saveProgressToStorage() {
+                localStorage.setItem('english_adventure_v2_progress', JSON.stringify(this.progress));
+                this.updateGlobalUIStats();
+            }
+
+            /**
+             * Reinicia por completo el avance del juego
+             */
+            resetProgress() {
+                if(confirm("¿Estás seguro de que deseas reiniciar todo tu progreso y borrar tu vocabulario acumulado?")) {
+                    localStorage.removeItem('english_adventure_v2_progress');
+                    this.progress = { unlockedLevel: 1, starsByLevel: {}, learnedVocabulary: [] };
+                    this.currentLevel = 1;
+                    this.currentStep = 0;
+                    this.saveProgressToStorage();
+                    this.renderMapNodes();
+                    this.switchTab('map');
+                }
+            }
+
+            /**
+             * Actualiza barras, porcentajes y contadores numéricos globales de la interfaz
+             */
+            updateGlobalUIStats() {
+                // Calcular conteo de estrellas totales recolectadas
+                let totalStars = 0;
+                Object.values(this.progress.starsByLevel).forEach(val => totalStars += val);
+                document.getElementById('global-star-count').innerText = totalStars;
+                document.getElementById('final-stars-val').innerText = totalStars;
+
+                // Conteo de vocabulario acumulado
+                const vocabCount = this.progress.learnedVocabulary.length;
+                document.getElementById('global-vocab-count').innerText = vocabCount;
+                document.getElementById('final-vocab-val').innerText = vocabCount;
+
+                // Progreso porcentual basado en niveles completados (un nivel se considera superado si el nivel desbloqueado es mayor)
+                const completionPercentage = Math.min(100, Math.round(((this.progress.unlockedLevel - 1) / 10) * 100));
+                document.getElementById('progress-percentage-text').innerText = `${completionPercentage}%`;
+                document.getElementById('map-progress-bar').style.width = `${completionPercentage}%`;
+            }
+
+            /**
+             * Renderiza dinámicamente el Mapa de 10 Niveles en Zig-Zag
+             */
+            renderMapNodes() {
+                const target = document.getElementById('map-nodes-target');
+                target.innerHTML = ''; // Limpiar contenedor
+
+                for (let i = 1; i <= 10; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'level-node';
+                    
+                    // Determinar estado de desbloqueo del nodo
+                    const isCompleted = i < this.progress.unlockedLevel;
+                    const isUnlocked = i <= this.progress.unlockedLevel;
+
+                    if (isCompleted) node.classList.add('completed');
+                    else if (isUnlocked) node.classList.add('unlocked');
+
+                    const starsCount = this.progress.starsByLevel[i] || 0;
+                    const starString = "⭐".repeat(starsCount) || "No stars";
+
+                    node.innerHTML = `
+                        <div class="level-bubble" onclick="app.enterLevel(${i}, ${isUnlocked})">
+                            ${isCompleted ? '✓' : i}
+                        </div>
+                        <div class="level-info-box">
+                            <div class="level-title">${CLASS_DATASET[i]?.title || 'Clase'}</div>
+                            <div class="level-stars">${starString}</div>
+                        </div>
+                    `;
+                    target.appendChild(node);
+                }
+            }
+
+            /**
+             * Manejador de entrada a un nivel desde el mapa
+             */
+            enterLevel(levelNum, isUnlocked) {
+                if (!isUnlocked) {
+                    alert("🔒 Este nivel está bloqueado. ¡Completa las clases anteriores para desbloquearlo!");
+                    return;
+                }
+                this.currentLevel = levelNum;
+                this.currentStep = 0; // Iniciar en el paso 1: Aprender
+                
+                // Cambiar vista activa
+                document.getElementById('view-map').classList.remove('active');
+                document.getElementById('view-class').classList.add('active');
+                
+                document.getElementById('class-view-title').innerText = `Level ${levelNum}: ${CLASS_DATASET[levelNum].title} (${CLASS_DATASET[levelNum].method})`;
+                
+                this.renderCurrentStepInFlow();
+            }
+
+            /**
+             * Sale del entorno de clase activo y regresa limpiamente al mapa principal
+             */
+            exitToMap() {
+                document.getElementById('view-class').classList.remove('active');
+                document.getElementById('view-map').classList.add('active');
+                this.renderMapNodes();
+                this.updateGlobalUIStats();
+            }
+
+            /**
+             * Alterna de forma reactiva el modo de visualización del Profesor
+             */
+            toggleTeacherMode() {
+                this.teacherMode = document.getElementById('teacher-mode-toggle').checked;
+                const teacherBox = document.getElementById('dynamic-teacher-box');
+                
+                if (this.teacherMode) {
+                    teacherBox.style.display = 'flex';
+                } else {
+                    teacherBox.style.display = 'none';
+                }
+            }
+
+            /**
+             * Renderiza el paso actual dentro del flujo de la lección seleccionada
+             */
+            renderCurrentStepInFlow() {
+                const data = CLASS_DATASET[this.currentLevel];
+                const contentCore = document.getElementById('class-content-core');
+                const feedbackPanel = document.getElementById('action-feedback-panel');
+                
+                // Limpiar estados transitorios y paneles de respuesta
+                feedbackPanel.className = 'feedback-panel';
+                this.selectedOption = null;
+
+                // Actualizar barra indicadora de pasos superior
+                for (let s = 0; s < 5; s++) {
+                    const dot = document.getElementById(`dot-${s}`);
+                    dot.className = 'step-dot';
+                    if (s === this.currentStep) dot.classList.add('active');
+                    else if (s < this.currentStep) dot.classList.add('completed');
+                }
+
+                // Ajustar visibilidad y textos de botones de control de flujo
+                document.getElementById('btn-flow-back').style.visibility = (this.currentStep === 0) ? 'hidden' : 'visible';
+                document.getElementById('btn-flow-next').innerText = (this.currentStep === 2) ? 'Verificar Respuesta' : (this.currentStep === 4 ? 'Finalizar Clase' : 'Siguiente');
+
+                // Renderizar contenido basado en la fase del método educativo obligatoria
+                switch (this.currentStep) {
+                    case 0: // 1. APRENDER (Explicación sencilla)
+                        document.getElementById('teacher-speech-text').innerText = data.teacherIntro;
+                        contentCore.innerHTML = `
+                            <div style='line-height:1.6;'>
+                                ${data.explain}
+                            </div>
+                        `;
+                        break;
+
+                    case 1: // 2. EJEMPLOS ILUSTRATIVOS CON AUDIO
+                        document.getElementById('teacher-speech-text').innerText = "Analicemos con atención los siguientes ejemplos prácticos. Escucha su pronunciación nativa haciendo clic en el parlante.";
+                        let examplesHTML = `<h3>Ejemplos Prácticos de la Lección</h3><ul class="example-list">`;
+                        data.examples.forEach(item => {
+                            examplesHTML += `
+                                <li class="example-item">
+                                    <div>
+                                        <span class="example-eng">${item.eng}</span><br>
+                                        <span class="example-esp">${item.esp}</span>
+                                    </div>
+                                    <div class="audio-icon-btn" onclick="app.speakText('${item.eng.replace(/'/g, "\\'")}')">🔊</div>
+                                </li>
+                            `;
+                        });
+                        examplesHTML += `</ul>`;
+                        contentCore.innerHTML = examplesHTML;
+                        break;
+
+                    case 2: // 3. ACTIVIDAD INTERACTIVA DINÁMICA
+                        document.getElementById('teacher-speech-text').innerText = data.activity.teacherTip && this.teacherMode ? data.activity.teacherTip : "¡Es tu turno de brillar! Lee el ejercicio y demuestra lo que has aprendido.";
+                        this.renderInteractiveActivity(data.activity);
+                        break;
+
+                    case 3: // 4. RETROALIMENTACIÓN (Se muestra después de evaluar, aquí se repasa el acierto)
+                        document.getElementById('teacher-speech-text').innerText = "¡Excelente revisión! Repasemos por qué tu respuesta fue analizada de este modo para consolidar tu conocimiento.";
+                        contentCore.innerHTML = `
+                            <div style="text-align:center; padding:20px;">
+                                <span style="font-size:60px;">🎯</span>
+                                <h3 style="margin-top:15px; color:var(--primary-dark);">¡Fase de Práctica Completada!</h3>
+                                <p style="margin-top:10px; font-size:16px; color:#555;">Tu desempeño ha sido registrado con éxito en la bitácora de la aventura.</p>
+                                <div class="card" style="margin-top:20px; background:#f9f9f9; text-align:left;">
+                                    <b>Recordatorio Clave:</b> ${data.activity.explanation}
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 4: // 5. RESUMEN CONCEPTUAL FINAL
+                        document.getElementById('teacher-speech-text').innerText = "¡Felicidades! Hemos terminado la clase de hoy. Aquí tienes un resumen con los puntos más importantes para recordar.";
+                        contentCore.innerHTML = data.summary;
+                        break;
+                }
+            }
+
+            /**
+             * Inyecta y renderiza el árbol DOM específico para cada tipo de actividad interactiva solicitada
+             */
+            renderInteractiveActivity(act) {
+                const contentCore = document.getElementById('class-content-core');
+                
+                let html = `<div style="font-size:18px; font-weight:bold; margin-bottom:15px;">${act.question}</div>`;
+
+                if (act.type === "multiple-choice" || act.type === "listening-api") {
+                    if(act.type === "listening-api") {
+                        html += `
+                            <div style="text-align:center; margin:15px 0;">
+                                <button class="btn btn-secondary" onclick="app.speakText('${act.phraseToSpeak}')" style="border-radius:50%; width:70px; height:70px; font-size:24px; padding:0; display:inline-flex; justify-content:center; align-items:center;">🔊</button>
+                                <div style="font-size:12px; color:#888; margin-top:5px;">Haz clic para escuchar el audio</div>
+                            </div>
+                        `;
+                    }
+                    html += `<div class="options-grid">`;
+                    act.options.forEach(opt => {
+                        html += `<div class="option-card" onclick="app.selectOptionCard(this, '${opt}')">${opt}</div>`;
+                    });
+                    html += `</div>`;
+                } 
+                else if (act.type === "drag-drop") {
+                    html += `
+                        <p style="font-size:14px; color:#666; margin-bottom:10px;">Arrastra las palabras blancas y suéltalas dentro de la zona segmentada gris:</p>
+                        <div class="drag-container">
+                    `;
+                    // Mezclar elementos de forma simple para el pool interactivo
+                    const shuffledPool = [...act.pool].sort(() => Math.random() - 0.5);
+                    shuffledPool.forEach((word, idx) => {
+                        html += `<div class="drag-item" draggable="true" id="drag-w-${idx}" ondragstart="app.handleDragStart(event, '${word}')">${word}</div>`;
+                    });
+                    html += `
+                        </div>
+                        <div class="drop-zone" id="drop-zone-target" ondragover="app.handleDragOver(event)" ondragleave="app.handleDragLeave(event)" ondrop="app.handleDrop(event)">
+                            Suelta las palabras aquí en orden para construir la frase
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top:10px; padding:6px 12px; font-size:12px; border-radius:8px;" onclick="app.clearDropZone()">Limpiar Zona</button>
+                    `;
+                } 
+                else if (act.type === "matching") {
+                    html += `<div class="matching-matrix"><div class="match-column">`;
+                    act.left.forEach((lWord, idx) => {
+                        html += `<div class="match-element" id="match-L-${idx}" onclick="app.selectMatchElement('L', '${lWord}', 'match-L-${idx}')">${lWord}</div>`;
+                    });
+                    html += `</div><div class="match-column">`;
+                    // Mezclar la columna derecha
+                    const shuffledRight = [...act.right].sort(() => Math.random() - 0.5);
+                    shuffledRight.forEach((rWord, idx) => {
+                        html += `<div class="match-element" id="match-R-${idx}" onclick="app.selectMatchElement('R', '${rWord}', 'match-R-${idx}')">${rWord}</div>`;
+                    });
+                    html += `</div></div>`;
+                    
+                    // Inicializar estado interno local de matching
+                    this.matchState = { selectedL: null, selectedLId: null, selectedR: null, selectedRId: null, pairedMatches: {} };
+                } 
+                else if (act.type === "writing-validation") {
+                    html += `
+                        <textarea class="text-input-field" id="writing-challenge-input" rows="3" placeholder="Escribe tu respuesta en inglés aquí..."></textarea>
+                    `;
+                }
+
+                contentCore.innerHTML = html;
+            }
+
+            /**
+             * Gestión de Selección: Opción Múltiple
+             */
+            selectOptionCard(element, val) {
+                const cards = document.querySelectorAll('.option-card');
+                cards.forEach(c => c.classList.remove('selected'));
+                element.classList.add('selected');
+                this.selectedOption = val;
+            }
+
+            /**
+             * Drag & Drop: Manejadores nativos de eventos HTML5
+             */
+            handleDragStart(e, wordText) {
+                this.draggedItemText = wordText;
+                e.dataTransfer.setData("text/plain", wordText);
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                document.getElementById('drop-zone-target').classList.add('hover');
+            }
+
+            handleDragLeave(e) {
+                document.getElementById('drop-zone-target').classList.remove('hover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                const zone = document.getElementById('drop-zone-target');
+                zone.classList.remove('hover');
+                
+                if (zone.innerText.includes("Suelta las palabras aquí")) {
+                    zone.innerText = "";
+                }
+
+                const word = e.dataTransfer.getData("text/plain") || this.draggedItemText;
+                if(word) {
+                    const span = document.createElement('span');
+                    span.className = 'drag-item';
+                    span.style.display = 'inline-block';
+                    span.style.margin = '4px';
+                    span.innerText = word;
+                    zone.appendChild(span);
+                }
+            }
+
+            clearDropZone() {
+                const zone = document.getElementById('drop-zone-target');
+                if(zone) zone.innerHTML = "Suelta las palabras aquí en orden para construir la frase";
+            }
+
+            setupDragAndDropGlobalListeners() {
+                // Compatibilidad de eventos touch para dispositivos móviles básicos
+                document.removeAttribute?.('pointerdown');
+            }
+
+            /**
+             * Gestión de Selección: Relacionar Columnas (Matching)
+             */
+            selectMatchElement(column, word, elementId) {
+                const el = document.getElementById(elementId);
+                if (column === 'L') {
+                    const sideL = document.querySelectorAll('.match-column:first-child .match-element');
+                    sideL.forEach(item => item.classList.remove('selected'));
+                    el.classList.add('selected');
+                    this.matchState.selectedL = word;
+                    this.matchState.selectedLId = elementId;
+                } else {
+                    const sideR = document.querySelectorAll('.match-column:last-child .match-element');
+                    sideR.forEach(item => item.classList.remove('selected'));
+                    el.classList.add('selected');
+                    this.matchState.selectedR = word;
+                    this.matchState.selectedRId = elementId;
+                }
+
+                // Evaluar emparejamiento inmediato si ambos lados están seleccionados
+                if (this.matchState.selectedL && this.matchState.selectedR) {
+                    const currentAct = CLASS_DATASET[this.currentLevel].activity;
+                    // Verificar si la pareja es correcta según el set original de datos
+                    if (currentAct.pairs[this.matchState.selectedL] === this.matchState.selectedR) {
+                        document.getElementById(this.matchState.selectedLId).classList.replace('selected', 'paired');
+                        document.getElementById(this.matchState.selectedRId).classList.replace('selected', 'paired');
+                        this.matchState.pairedMatches[this.matchState.selectedL] = this.matchState.selectedR;
+                    } else {
+                        // Desbalancear selecciones erróneas con feedback visual inmediato
+                        const lId = this.matchState.selectedLId;
+                        const rId = this.matchState.selectedRId;
+                        document.getElementById(lId).style.borderColor = "var(--wrong)";
+                        document.getElementById(rId).style.borderColor = "var(--wrong)";
+                        setTimeout(() => {
+                            const lEl = document.getElementById(lId);
+                            const rEl = document.getElementById(rId);
+                            if(lEl) { lEl.classList.remove('selected'); lEl.style.borderColor = '#e5e5e5'; }
+                            if(rEl) { rEl.classList.remove('selected'); rEl.style.borderColor = '#e5e5e5'; }
+                        }, 600);
+                    }
+                    // Resetear selectores temporales de estado
+                    this.matchState.selectedL = null; this.matchState.selectedLId = null;
+                    this.matchState.selectedR = null; this.matchState.selectedRId = null;
+                }
+            }
+
+            /**
+             * CONTROLADOR DE FLUJO: BOTÓN ATRÁS
+             */
+            flowPrevious() {
+                if (this.currentStep > 0) {
+                    this.currentStep--;
+                    this.renderCurrentStepInFlow();
+                }
+            }
+
+            /**
+             * CONTROLADOR DE FLUJO INTERNO: BOTÓN SIGUIENTE / VERIFICAR
+             */
+            flowNext() {
+                const data = CLASS_DATASET[this.currentLevel];
+                
+                // Si estamos en el paso de actividad (paso número 2), el botón ejecuta la validación evaluativa obligatoria
+                if (this.currentStep === 2) {
+                    this.evaluateCurrentActivity(data.activity);
+                    return;
+                }
+
+                // Avance regular de pasos
+                if (this.currentStep < 4) {
+                    this.currentStep++;
+                    this.renderCurrentStepInFlow();
+                } else {
+                    // Fin del paso 5 (Resumen): Registrar lección completada e incorporar vocabulario
+                    this.finalizeLevelCompletion(data);
+                }
+            }
+
+            /**
+             * EVALUADOR INTEGRAL DE RESPUESTAS E INYECCIÓN DE RETROALIMENTACIÓN
+             */
+            evaluateCurrentActivity(act) {
+                const feedbackPanel = document.getElementById('action-feedback-panel');
+                const feedbackMain = document.getElementById('feedback-main-message');
+                const feedbackExplanation = document.getElementById('feedback-explanation-text');
+                
+                let isCorrect = false;
+
+                if (act.type === "multiple-choice" || act.type === "listening-api") {
+                    if (!this.selectedOption) {
+                        alert("Por favor, selecciona una opción antes de continuar.");
+                        return;
+                    }
+                    isCorrect = (this.selectedOption === act.correct);
+                } 
+                else if (act.type === "drag-drop") {
+                    const zone = document.getElementById('drop-zone-target');
+                    const spans = zone.querySelectorAll('span');
+                    const standardWords = [];
+                    spans.forEach(s => standardWords.push(s.innerText.trim()));
+                    
+                    isCorrect = (JSON.stringify(standardWords) === JSON.stringify(act.correctOrder));
+                } 
+                else if (act.type === "matching") {
+                    // Contar cuántos pares se han resuelto correctamente frente al total esperado
+                    const totalRequired = Object.keys(act.pairs).length;
+                    const totalAchieved = Object.keys(this.matchState.pairedMatches).length;
+                    isCorrect = (totalRequired === totalAchieved);
+                } 
+                else if (act.type === "writing-validation") {
+                    const userText = document.getElementById('writing-challenge-input').value.trim().toLowerCase();
+                    isCorrect = act.acceptedAnswers.some(ans => ans.toLowerCase() === userText);
+                }
+
+                // Despliegue estricto del Panel de Retroalimentación Basado en Resultados
+                if (isCorrect) {
+                    feedbackPanel.className = "feedback-panel correct";
+                    feedbackMain.innerText = "¡Excelente! Respuesta Correcta ⭐⭐⭐";
+                    feedbackExplanation.innerText = act.explanation;
+                    
+                    // Asignar 3 estrellas fijas por nivel superado con éxito al primer intento o revisión
+                    this.progress.starsByLevel[this.currentLevel] = 3;
+                    
+                    // Forzar el avance inmediato al paso 3 (Retroalimentación estática) tras validación positiva exitosa
+                    this.currentStep = 3;
+                    document.getElementById('btn-flow-next').innerText = "Siguiente";
+                } else {
+                    feedbackPanel.className = "feedback-panel wrong";
+                    feedbackMain.innerText = "¡Sigue intentándolo!";
+                    
+                    if(act.type === "writing-validation") {
+                        feedbackExplanation.innerText = `Revisa tu escritura. Asegúrate de colocar las palabras en el orden correcto. La respuesta esperada se parece a: "${act.correctReference}". \nDetalle conceptual: ${act.explanation}`;
+                    } else {
+                        feedbackExplanation.innerText = "Tu respuesta actual no coincide con la regla gramatical o el término adecuado. Analiza de nuevo el ejercicio.";
+                    }
+                }
+            }
+
+            /**
+             * Finaliza de forma oficial la lección, guarda vocabulario y actualiza el nivel del mapa
+             */
+            finalizeLevelCompletion(levelData) {
+                // Incorporar ítems de vocabulario de la lección al almacén permanente sin duplicar
+                levelData.vocabItems.forEach(item => {
+                    const exists = this.progress.learnedVocabulary.some(v => v.eng.toLowerCase() === item.eng.toLowerCase());
+                    if (!exists) {
+                        this.progress.learnedVocabulary.push(item);
+                    }
+                });
+
+                // Desbloquear el siguiente nivel en secuencia lineal
+                if (this.currentLevel === this.progress.unlockedLevel && this.progress.unlockedLevel < 10) {
+                    this.progress.unlockedLevel = this.currentLevel + 1;
+                } else if (this.currentLevel === 10) {
+                    // Fin absoluto del juego: Nivel 10 completado con éxito
+                    this.saveProgressToStorage();
+                    this.exitToMap();
+                    this.switchTab('final');
+                    return;
+                }
+
+                this.saveProgressToStorage();
+                this.exitToMap();
+            }
+
+            /**
+             * NAVEGACIÓN GLOBAL POR PESTAÑAS
+             */
+            switchTab(tabName) {
+                // Quitar clases activas previas
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+                if (tabName === 'map') {
+                    document.getElementById('view-map').classList.add('active');
+                    document.getElementById('tab-map').classList.add('active');
+                    this.renderMapNodes();
+                } else if (tabName === 'vocab') {
+                    document.getElementById('view-vocabulary').classList.add('active');
+                    document.getElementById('tab-vocab').classList.add('active');
+                    this.renderVocabularyGrid();
+                } else if (tabName === 'final') {
+                    document.getElementById('view-final').classList.add('active');
+                }
+            }
+
+            /**
+             * Renderiza dinámicamente las tarjetas de vocabulario acumuladas
+             */
+            renderVocabularyGrid() {
+                const grid = document.getElementById('vocab-cards-grid');
+                grid.innerHTML = '';
+
+                if (this.progress.learnedVocabulary.length === 0) {
+                    grid.innerHTML = `<div class="card" style="grid-column: 1/-1; text-align:center; color:#888;">Aún no has aprendido palabras. ¡Completa niveles del mapa para acumular vocabulario!</div>`;
+                    return;
+                }
+
+                this.progress.learnedVocabulary.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'vocab-card';
+                    card.innerHTML = `
+                        <div class="vocab-meta">
+                            <h4>${item.eng} <span style="font-size:12px; font-weight:normal; color:#888;">[${item.pr}]</span></h4>
+                            <div class="esp">🗣️ ${item.esp}</div>
+                            <div class="ex"><b>Ejemplo:</b> ${item.ex}</div>
+                        </div>
+                        <div class="audio-icon-btn" onclick="app.speakText('${item.eng.replace(/'/g, "\\'")}')">🔊</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            /**
+             * Descarga el vocabulario acumulado del estudiante en un archivo JSON local
+             */
+            downloadVocabularyJSON() {
+                if(this.progress.learnedVocabulary.length === 0) {
+                    alert("No hay palabras en tu vocabulario para descargar todavía.");
+                    return;
+                }
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.progress.learnedVocabulary, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "my_english_vocabulary.json");
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+            }
+
+            /**
+             * MOTOR DE SÍNTESIS DE AUDIO INTEGRADO (SpeechSynthesis API NATIVA)
+             */
+            speakText(textToSay) {
+                if ('speechSynthesis' in window) {
+                    // Cancelar emisiones de audio previas en cola para evitar retrasos
+                    window.speechSynthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(textToSay);
+                    utterance.lang = 'en-US'; // Forzar acento y fonética en inglés americano nativo
+                    utterance.rate = 0.85;     // Velocidad ligeramente reducida para facilitar comprensión escolar de 4to grado
+                    window.speechSynthesis.speak(utterance);
+                } else {
+                    alert("Tu dispositivo o navegador actual no soporta la reproducción de audio nativa offline mediante SpeechSynthesis.");
+                }
+            }
+        }
+
+        // Instanciación global única e inicio de ejecución del sistema modular
+        const app = new EnglishAdventureApp();
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
+
