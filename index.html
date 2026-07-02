@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Adventure v2.0</title>
+    <title>English Adventure v2.5</title>
     <style>
         /* ==========================================================================
            VARIABLES DE DISEÑO & PALETA DE COLORES (Estilo Duolingo/Kahoot)
@@ -116,7 +116,6 @@
             gap: 5px;
         }
 
-        /* Switch de Modo Profesor */
         .teacher-switch-container {
             display: flex;
             align-items: center;
@@ -177,7 +176,7 @@
         }
 
         /* ==========================================================================
-           VISTA 1: MAPA DE AVENTURA (10 NIVELES)
+           VISTA 1: MAPA DE AVENTURA
            ========================================================================== */
         .map-container {
             display: flex;
@@ -292,7 +291,7 @@
         }
 
         /* ==========================================================================
-           VISTA 2: ENTORNO DE CLASE FLUJO DE APRENDIZAJE
+           VISTA 2: ENTORNO DE CLASE
            ========================================================================== */
         .step-indicator-bar {
             display: grid;
@@ -311,7 +310,6 @@
         .step-dot.active { background: var(--secondary); }
         .step-dot.completed { background: var(--primary); }
 
-        /* Barra para rastrear las 5 preguntas internas */
         .subquestion-tracker {
             display: flex;
             justify-content: center;
@@ -634,7 +632,7 @@
 
     <script>
         /**
-         * BANCO DE DATOS DE LAS 10 CLASES CON 5 PREGUNTAS MIXTAS CADA UNA
+         * BANCO DE DATOS ROBUSTO: 10 NIVELES CON 20 PREGUNTAS MIXTAS CADA UNO (200 PREGUNTAS TOTALES)
          */
         const CLASS_DATASET = {
             1: {
@@ -654,7 +652,22 @@
                     { type: "multiple-choice", question: "(-) Completa la forma negativa: 'I ______ play football.'", options: ["do not", "is not", "am not"], correct: "do not", exp: "Usamos 'do not' para negar verbos en presente con I." },
                     { type: "writing-validation", question: "Escribe en inglés: 'Yo juego tenis' (+)", accepted: ["I play tennis", "I play tennis."], exp: "Sujeto + Verbo + Complemento." },
                     { type: "multiple-choice", question: "(-) Si no juegas baloncesto dices: 'I do not play _________'", options: ["Basketball", "Running", "Swimming"], correct: "Basketball", exp: "Basketball significa baloncesto." },
-                    { type: "writing-validation", question: "Completa la negación: 'I do ____ play tennis.'", accepted: ["not"], exp: "La partícula de negación es 'not'." }
+                    { type: "writing-validation", question: "Completa la negación: 'I do ____ play tennis.'", accepted: ["not"], exp: "La partícula de negación es 'not'." },
+                    { type: "multiple-choice", question: "(+) Deporte que se juega con una raqueta y una red:", options: ["Tennis", "Basketball", "Running"], correct: "Tennis", exp: "Tennis es tenis." },
+                    { type: "drag-drop", question: "(+) Ordena la frase: 'Yo juego fútbol'", pool: ["football", "play", "I"], correctOrder: ["I", "play", "football"], exp: "El orden correcto es Sujeto + Verbo + Objeto." },
+                    { type: "writing-validation", question: "(+) ¿Cómo se escribe 'Fútbol' en inglés?", accepted: ["football", "soccer"], exp: "Se puede decir football o soccer." },
+                    { type: "multiple-choice", question: "(-) Elige la opción correcta para: 'Yo no nado.'", options: ["I do not swim", "I am not swim", "I no swim"], correct: "I do not swim", exp: "Usamos el auxiliar do not para negar acciones." },
+                    { type: "listening-api", phraseToSpeak: "I play basketball", question: "(+) Escucha el audio y selecciona la opción correcta:", options: ["I play basketball", "I play football", "I do not play basketball"], correct: "I play basketball", exp: "Has escuchado la forma afirmativa." },
+                    { type: "multiple-choice", question: "(+) Significado de 'Running':", options: ["Correr", "Nadar", "Saltar"], correct: "Correr", exp: "Running viene de la acción de correr." },
+                    { type: "writing-validation", question: "(-) Completa: 'We ___ not play tennis.'", accepted: ["do"], exp: "Para 'We' el auxiliar negativo es 'do not'." },
+                    { type: "drag-drop", question: "(-) Ordena: 'Yo no juego baloncesto.'", pool: ["basketball", "play", "not", "I", "do"], correctOrder: ["I", "do", "not", "play", "basketball"], exp: "Sujeto + do + not + verbo + complemento." },
+                    { type: "multiple-choice", question: "(+) Si juegas voleibol dices: 'I play ______'", options: ["volleyball", "swimming", "tennis"], correct: "volleyball", exp: "Volleyball significa voleibol." },
+                    { type: "listening-api", phraseToSpeak: "We do not swim", question: "(-) Escucha el audio y selecciona la opción correcta:", options: ["We do not swim", "We swim", "They do not swim"], correct: "We do not swim", exp: "Se niega con do not swim." },
+                    { type: "writing-validation", question: "(+) Traduce la palabra 'Natación':", accepted: ["swimming"], exp: "Swimming se escribe con doble 'm'." },
+                    { type: "multiple-choice", question: "(-) ¿Cuál está mal escrita?", options: ["I do not play football", "I no play basketball", "I do not swim"], correct: "I no play basketball", exp: "'I no play' es incorrecto en inglés formal." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Nosotros jugamos tenis.'", pool: ["tennis", "play", "We"], correctOrder: ["We", "play", "tennis"], exp: "We (Nosotros) + play (jugamos) + tennis." },
+                    { type: "listening-api", phraseToSpeak: "I do not play soccer", question: "(-) Escucha el audio:", options: ["I do not play soccer", "I play soccer", "He plays soccer"], correct: "I do not play soccer", exp: "Estructura negativa clara." },
+                    { type: "writing-validation", question: "(-) Completa la frase: 'They do not ____ (jugar) basketball.'", accepted: ["play"], exp: "El verbo infinitivo base es play." }
                 ],
                 summary: "<h3>Resumen</h3><p>Aprendiste deportes en sus formas afirmativas y negativas usando 'do not'.</p>"
             },
@@ -675,7 +688,22 @@
                     { type: "multiple-choice", question: "(-) Traduce: 'Yo no soy bueno en matemáticas.'", options: ["I am not good at math", "I am good at math", "I do not good at math"], correct: "I am not good at math", exp: "Estructura correcta: am + not + good at." },
                     { type: "drag-drop", question: "(+) Ordena: buena en natación.", pool: ["good", "She", "is", "at", "swimming"], correctOrder: ["She", "is", "good", "at", "swimming"], exp: "Estructura afirmativa limpia." },
                     { type: "drag-drop", question: "(-) Ordena: no soy bueno en tenis.", pool: ["not", "am", "I", "good", "at", "tennis"], correctOrder: ["I", "am", "not", "good", "at", "tennis"], exp: "Estructura negativa con 'not'." },
-                    { type: "writing-validation", question: "Escribe la palabra que falta: 'He is ______ good at cooking' (Él NO es bueno...)", accepted: ["not"], exp: "Falta el 'not' para volver la habilidad negativa." }
+                    { type: "writing-validation", question: "Escribe la palabra que falta: 'He is ______ good at cooking' (Él NO es bueno...)", accepted: ["not"], exp: "Falta el 'not' para volver la habilidad negativa." },
+                    { type: "multiple-choice", question: "(+) ¿Qué preposición acompaña siempre a 'good' para indicar habilidad?", options: ["at", "in", "on"], correct: "at", exp: "Siempre se dice 'good at'." },
+                    { type: "writing-validation", question: "(+) Traduce: 'Soy bueno en fútbol.'", accepted: ["I am good at football", "I am good at soccer"], exp: "Sujeto + am + good at + deporte." },
+                    { type: "listening-api", phraseToSpeak: "I am good at swimming", question: "(+) Escucha el audio:", options: ["I am good at swimming", "I am not good at swimming", "He is good at swimming"], correct: "I am good at swimming", exp: "Frase afirmativa de destreza." },
+                    { type: "multiple-choice", question: "(-) 'They are not good ___ basketball.'", options: ["at", "for", "with"], correct: "at", exp: "Incluso en negativo se conserva la preposición 'at'." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Ellos son buenos en música.'", pool: ["good", "at", "music", "They", "are"], correctOrder: ["They", "are", "good", "at", "music"], exp: "They + are + good + at + music." },
+                    { type: "writing-validation", question: "(-) Traduce: 'Él no es bueno en tenis'", accepted: ["He is not good at tennis"], exp: "Usa 'is not' para la tercera persona singular." },
+                    { type: "multiple-choice", question: "(+) Si eres excelente dibujando dices: 'I am _______ drawing.'", options: ["good at", "not good at", "bad at"], correct: "good at", exp: "Good at significa que tienes habilidad para ello." },
+                    { type: "listening-api", phraseToSpeak: "She is not good at running", question: "(-) Escucha el audio y responde:", options: ["She is not good at running", "She is good at running", "I am not good at running"], correct: "She is not good at running", exp: "Se escucha claramente 'is not'." },
+                    { type: "writing-validation", question: "(+) Completa la frase: 'You ___ good at English.'", accepted: ["are"], exp: "El pronombre 'You' requiere el verbo 'are'." },
+                    { type: "multiple-choice", question: "(-) ¿Cuál oración está bien estructurada?", options: ["I am not good at art", "I not am good at art", "I am good not at art"], correct: "I am not good at art", exp: "El 'not' siempre va inmediatamente después del verbo to be." },
+                    { type: "drag-drop", question: "(-) Ordena: 'Nosotros no somos buenos cantando.'", pool: ["singing", "at", "not", "good", "are", "We"], correctOrder: ["We", "are", "not", "good", "at", "singing"], exp: "We + are + not + good + at + singing." },
+                    { type: "writing-validation", question: "(+) Completa: 'I ___ good at running.'", accepted: ["am"], exp: "Pronombre 'I' va con 'am'." },
+                    { type: "multiple-choice", question: "(+) ¿Qué significa 'I am not good at dancing'?", options: ["No soy bueno bailando", "Soy bueno bailando", "No me gusta bailar"], correct: "No soy bueno bailando", exp: "Indica falta de destreza." },
+                    { type: "listening-api", phraseToSpeak: "He is good at math", question: "(+) Escucha el audio:", options: ["He is good at math", "He is not good at math", "They are good at math"], correct: "He is good at math", exp: "Afirmación sobre destreza matemática." },
+                    { type: "writing-validation", question: "(-) Agrega la palabra que falta: 'They are ____ good at swimming.'", accepted: ["not"], exp: "Usa 'not' para convertila en negativa." }
                 ],
                 summary: "<h3>Resumen</h3><p>Ya sabes expresar lo que se te da bien (+) y lo que no (-).</p>"
             },
@@ -690,7 +718,22 @@
                     { type: "multiple-choice", question: "(-) Oración negativa correcta:", options: ["I am not reading", "I not am reading", "I am reading not"], correct: "I am not reading", exp: "'not' va después de 'am'." },
                     { type: "writing-validation", question: "(+) Traduce: 'Yo estoy corriendo.'", accepted: ["I am running", "I am running."], exp: "Recuerda duplicar la n en running." },
                     { type: "multiple-choice", question: "(-) Completa: 'They are _______ eating.' (Ellos no están comiendo)", options: ["not", "no", "don't"], correct: "not", exp: "Se usa 'not' con el verbo To Be." },
-                    { type: "writing-validation", question: "(+) Escribe el verbo To Be para 'He' en: 'He ____ sleeping.'", accepted: ["is"], exp: "He va acompañado de is." }
+                    { type: "writing-validation", question: "(+) Escribe el verbo To Be para 'He' en: 'He ____ sleeping.'", accepted: ["is"], exp: "He va acompañado de is." },
+                    { type: "multiple-choice", question: "(+) ¿Qué terminación le damos al verbo en el presente continuo?", options: ["-ing", "-ed", "-s"], correct: "-ing", exp: "La terminación -ing equivale al ando/endo en español." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Ella está cocinando.'", pool: ["cooking", "is", "She"], correctOrder: ["She", "is", "cooking"], exp: "Sujeto + is + verbo con -ing." },
+                    { type: "listening-api", phraseToSpeak: "We are playing", question: "(+) Escucha el audio:", options: ["We are playing", "We are not playing", "They are playing"], correct: "We are playing", exp: "Forma afirmativa en plural." },
+                    { type: "writing-validation", question: "(-) Traduce: 'No estoy llorando'", accepted: ["I am not crying"], exp: "I am not crying es la forma correcta." },
+                    { type: "multiple-choice", question: "(-) Completa: 'You are ______ studying.'", options: ["not", "no", "never"], correct: "not", exp: "Negación estándar en presente continuo." },
+                    { type: "drag-drop", question: "(-) Ordena: 'Él no está comiendo.'", pool: ["eating", "not", "is", "He"], correctOrder: ["He", "is", "not", "eating"], exp: "El orden correcto sitúa al 'not' tras el 'is'." },
+                    { type: "writing-validation", question: "(+) Transforma el verbo 'Walk' a continuo:", accepted: ["walking"], exp: "Solo agregas -ing al final." },
+                    { type: "listening-api", phraseToSpeak: "They are not sleeping", question: "(-) Escucha el audio:", options: ["They are not sleeping", "They are sleeping", "We are not sleeping"], correct: "They are not sleeping", exp: "Indica que la acción no ocurre ahora." },
+                    { type: "multiple-choice", question: "(+) Si los niños están nadando dices: 'The boys ______ swimming.'", options: ["are", "is", "am"], correct: "are", exp: "Boys es plural, por ende usa are." },
+                    { type: "writing-validation", question: "(+) Escribe la palabra que falta: 'I ___ writing a letter.'", accepted: ["am"], exp: "I obligatoriamente usa am." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Nosotros estamos aprendiendo.'", pool: ["learning", "We", "are"], correctOrder: ["We", "are", "learning"], exp: "Sujeto + are + learning." },
+                    { type: "multiple-choice", question: "(-) Traduce: 'Ella no está cantando.'", options: ["She is not singing", "She not is singing", "She is singing not"], correct: "She is not singing", exp: "Estructura negativa limpia." },
+                    { type: "listening-api", phraseToSpeak: "I am studying", question: "(+) Escucha con atención:", options: ["I am studying", "I am not studying", "He is studying"], correct: "I am studying", exp: "Afirmación del presente continuo." },
+                    { type: "writing-validation", question: "(-) Completa: 'The dog is _____ barking.' (El perro no está ladrando)", accepted: ["not"], exp: "Falta la partícula negativa 'not'." },
+                    { type: "multiple-choice", question: "(+) ¿Qué significa 'We are walking'?", options: ["Estamos caminando", "Estamos corriendo", "Estamos hablando"], correct: "Estamos caminando", exp: "Walk significa caminar." }
                 ],
                 summary: "<h3>Resumen</h3><p>Identificas acciones continuas positivas (+) y negativas (-).</p>"
             },
@@ -705,7 +748,22 @@
                     { type: "multiple-choice", question: "(-) Elige la opción negativa correcta:", options: ["She does not sing happily", "She not sings happily", "She happily not sings"], correct: "She does not sing happily", exp: "Usa 'does not' para la tercera persona." },
                     { type: "writing-validation", question: "(+) Transforma 'Slow' a adverbio de modo:", accepted: ["slowly"], exp: "Slow + ly = slowly." },
                     { type: "multiple-choice", question: "(+) 'The teacher speaks _______.' (Tranquilamente)", options: ["quietly", "loudly", "badly"], correct: "quietly", exp: "Quietly es silenciosa o tranquilamente." },
-                    { type: "writing-validation", question: "(-) Completa: 'We do _____ run quickly.'", accepted: ["not"], exp: "Falta 'not' para completar la estructura de la negación." }
+                    { type: "writing-validation", question: "(-) Completa: 'We do _____ run quickly.'", accepted: ["not"], exp: "Falta 'not' para completar la estructura de la negación." },
+                    { type: "multiple-choice", question: "(+) ¿Cómo se dice 'fácilmente' en inglés?", options: ["easily", "fastly", "easy"], correct: "easily", exp: "Easy cambia su 'y' por 'i' antes de agregar -ly." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Él camina lentamente.'", pool: ["slowly", "walks", "He"], correctOrder: ["He", "walks", "slowly"], exp: "El adverbio va por lo general al final describiendo la acción." },
+                    { type: "listening-api", phraseToSpeak: "She sings beautifully", question: "(+) Escucha el audio:", options: ["She sings beautifully", "She does not sing beautifully", "She sings badly"], correct: "She sings beautifully", exp: "Beautifully significa hermosamente." },
+                    { type: "writing-validation", question: "(-) Escribe en inglés: 'Yo no hablo rápido'", accepted: ["I do not speak quickly", "I don't speak quickly"], exp: "Usa el auxiliar negativo do not." },
+                    { type: "multiple-choice", question: "(-) Completa: 'They do not run ________.' (felizmente)", options: ["happily", "happy", "happied"], correct: "happily", exp: "Happily es el adverbio correspondiente." },
+                    { type: "drag-drop", question: "(-) Ordena: 'Nosotros no gritamos ruidosamente.'", pool: ["loudly", "shout", "not", "do", "We"], correctOrder: ["We", "do", "not", "shout", "loudly"], exp: "Estructura negativa en presente simple con adverbio." },
+                    { type: "writing-validation", question: "(+) Convierte 'Sad' en adverbio de modo:", accepted: ["sadly"], exp: "Sad + ly = sadly." },
+                    { type: "listening-api", phraseToSpeak: "He walks slowly", question: "(+) Escucha atentamente:", options: ["He walks slowly", "He walks quickly", "He does not walk slowly"], correct: "He walks slowly", exp: "El audio describe una caminata pausada." },
+                    { type: "multiple-choice", question: "(+) ¿Cuál es el adverbio irregular de 'Good'?", options: ["well", "goodly", "better"], correct: "well", exp: "'Good' nunca se convierte en 'goodly', cambia completamente a 'well'." },
+                    { type: "writing-validation", question: "(+) Escribe la palabra que falta: 'She writes _________ (hermosamente).'", accepted: ["beautifully"], exp: "Beautifully describe el modo de escritura." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Ellos juegan bien.'", pool: ["well", "play", "They"], correctOrder: ["They", "play", "well"], exp: "They + play + well (adverbio irregular de good)." },
+                    { type: "multiple-choice", question: "(-) Selecciona la frase correcta:", options: ["He does not learn easily", "He no learns easily", "He does not easily learn"], correct: "He does not learn easily", exp: "Sujeto + does not + verbo + adverbio." },
+                    { type: "listening-api", phraseToSpeak: "I do not drive fast", question: "(-) Escucha el audio:", options: ["I do not drive fast", "I drive fast", "He does not drive fast"], correct: "I do not drive fast", exp: "Fast es un adverbio invariable (no lleva -ly)." },
+                    { type: "writing-validation", question: "(-) Completa la negación: 'She ____ not answer quickly.'", accepted: ["does"], exp: "She requiere el auxiliar does." },
+                    { type: "multiple-choice", question: "(+) ¿Qué significa 'sadly'?", options: ["Tristemente", "Aalegremente", "Rápidamente"], correct: "Tristemente", exp: "Deriva de sad (triste)." }
                 ],
                 summary: "<h3>Resumen</h3><p>Aprendiste a calificar acciones de forma afirmativa y negativa.</p>"
             },
@@ -720,7 +778,22 @@
                     { type: "multiple-choice", question: "(-) Elige la correcta: 'Esa casa no es grande.'", options: ["That house is not big", "That house not is big", "That house is big not"], correct: "That house is not big", exp: "Is + not + adjetivo." },
                     { type: "writing-validation", question: "(+) Traduce: 'Un carro azul'", accepted: ["A blue car", "a blue car."], exp: "Color va primero." },
                     { type: "multiple-choice", question: "(+) ¿Los adjetivos en inglés llevan 's' para plural?", options: ["No, nunca", "Sí, siempre"], correct: "No, nunca", exp: "Los adjetivos son invariables." },
-                    { type: "writing-validation", question: "(-) Completa: 'This book ____ not interesting.'", accepted: ["is"], exp: "Usa 'is' para objetos singulares." }
+                    { type: "writing-validation", question: "(-) Completa: 'This book ____ not interesting.'", accepted: ["is"], exp: "Usa 'is' para objetos singulares." },
+                    { type: "multiple-choice", question: "(+) Traduce 'Un gigante oso':", options: ["A huge bear", "A bear huge", "Huge a bear"], correct: "A huge bear", exp: "Huge (enorme/gigante) precede al animal." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Tengo un gato negro.'", pool: ["black", "cat", "a", "have", "I"], correctOrder: ["I", "have", "a", "black", "cat"], exp: "Estructura: I + have + a + adjetivo + sustantivo." },
+                    { type: "listening-api", phraseToSpeak: "It is a beautiful day", question: "(+) Escucha el audio:", options: ["It is a beautiful day", "It is a bad day", "It is not a beautiful day"], correct: "It is a beautiful day", exp: "Hermoso día." },
+                    { type: "writing-validation", question: "(-) Traduce: 'No es una pelota pequeña'", accepted: ["It is not a small ball"], exp: "Estructura correcta con adjetivo calificativo." },
+                    { type: "multiple-choice", question: "(-) Completa la negación: 'My shoes are ______ clean.'", options: ["not", "no", "don't"], correct: "not", exp: "Usa 'not' después del verbo to be plural 'are'." },
+                    { type: "drag-drop", question: "(-) Ordena: 'Esas manzanas no están verdes.'", pool: ["green", "not", "are", "Those", "apples"], correctOrder: ["Those", "apples", "are", "not", "green"], exp: "Sujeto plural + are + not + adjetivo." },
+                    { type: "writing-validation", question: "(+) Traduce la palabra 'Feliz':", accepted: ["happy"], exp: "Se escribe h-a-p-p-y." },
+                    { type: "listening-api", phraseToSpeak: "The car is fast", question: "(+) Escucha el audio:", options: ["The car is fast", "The car is slow", "The car is not fast"], correct: "The car is fast", exp: "Fast significa veloz o rápido." },
+                    { type: "multiple-choice", question: "(+) ¿Cuál opción muestra adjetivos en plural correctos?", options: ["tall trees", "talls trees", "talles trees"], correct: "tall trees", exp: "Los adjetivos jamás se pluralizan en inglés." },
+                    { type: "writing-validation", question: "(-) Completa: 'The teacher is _____ angry today.' (El maestro no está enojado hoy)", accepted: ["not"], exp: "La negación del estado usa not." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Es una película vieja.'", pool: ["movie", "old", "an", "It", "is"], correctOrder: ["It", "is", "an", "old", "movie"], exp: "Se usa 'an' porque 'old' empieza con vocal." },
+                    { type: "multiple-choice", question: "(-) ¿Qué significa 'They are not rich'?", options: ["Ellos no son ricos", "Ellos son ricos", "Ellos no tienen comida"], correct: "Ellos no son ricos", exp: "Rich es el adjetivo para rico." },
+                    { type: "listening-api", phraseToSpeak: "He is a tall boy", question: "(+) Escucha el audio:", options: ["He is a tall boy", "He is a short boy", "She is a tall girl"], correct: "He is a tall boy", exp: "Tall significa alto." },
+                    { type: "writing-validation", question: "(+) Traduce el adjetivo contrario de 'Hot' (Caliente):", accepted: ["cold"], exp: "Lo opuesto es cold (frío)." },
+                    { type: "multiple-choice", question: "(+) ¿Dónde se sitúa el adjetivo en 'A smart student'?", options: ["Antes del sustantivo", "Después del sustantivo", "Al final de la oración"], correct: "Antes del sustantivo", exp: "Smart (inteligente) va justo antes de student." }
                 ],
                 summary: "<h3>Resumen</h3><p>Dominas los adjetivos descriptivos y sus posiciones.</p>"
             },
@@ -735,7 +808,22 @@
                     { type: "multiple-choice", question: "(+) Pregunta por una persona:", options: ["Who", "Where", "What"], correct: "Who", exp: "Who es para personas." },
                     { type: "writing-validation", question: "(+) Traduce la palabra de pregunta: '¿Qué?'", accepted: ["What", "what"], exp: "What significa qué." },
                     { type: "multiple-choice", question: "(-) Pregunta negativa: 'Why ____ you not here?'", options: ["are", "is", "am"], correct: "are", exp: "You se usa con are." },
-                    { type: "writing-validation", question: "(+) Completa: '_______ is your name?'", accepted: ["What", "what"], exp: "Pregunta básica de identidad." }
+                    { type: "writing-validation", question: "(+) Completa: '_______ is your name?'", accepted: ["What", "what"], exp: "Pregunta básica de identidad." },
+                    { type: "multiple-choice", question: "(+) ¿Qué palabra usas para preguntar una razón o motivo?", options: ["Why", "When", "Which"], correct: "Why", exp: "Why equivale a nuestro '¿Por qué?'." },
+                    { type: "drag-drop", question: "(+) Ordena la pregunta: '¿Dónde está ella?'", pool: ["she", "is", "Where"], correctOrder: ["Where", "is", "she"], exp: "La palabra WH va al principio de la estructura." },
+                    { type: "listening-api", phraseToSpeak: "Who is your teacher", question: "(+) Escucha el audio:", options: ["Who is your teacher", "Where is your teacher", "What is your teacher"], correct: "Who is your teacher", exp: "Who pregunta por la identidad del profesor." },
+                    { type: "writing-validation", question: "(-) Traduce la pregunta: '¿Por qué no estás feliz?'", accepted: ["Why are you not happy", "Why aren't you happy"], exp: "Usa Why + are + you + not + adjetivo." },
+                    { type: "multiple-choice", question: "(-) Completa la pregunta: 'What do you ______ like?' (¿Qué no te gusta?)", options: ["not", "no", "never"], correct: "not", exp: "La estructura requiere 'do you not'." },
+                    { type: "drag-drop", question: "(-) Ordena: '¿Por qué ellos no corren?'", pool: ["run", "not", "They", "do", "Why"], correctOrder: ["Why", "do", "They", "not", "run"], exp: "Estructura formal de una WH question negativa." },
+                    { type: "writing-validation", question: "(+) Escribe el conector que significa '¿Cuándo?':", accepted: ["when"], exp: "When sirve para consultar el tiempo o momento." },
+                    { type: "listening-api", phraseToSpeak: "Where are my keys", question: "(+) Escucha el audio:", options: ["Where are my keys", "What are my keys", "Where is my key"], correct: "Where are my keys", exp: "Keys está en plural, por eso se oye are." },
+                    { type: "multiple-choice", question: "(+) Elige la respuesta correcta para 'Who are you?'", options: ["I am a student", "In the school", "At 5 o'clock"], correct: "I am a student", exp: "Como pregunta por alguien, se responde con una persona." },
+                    { type: "writing-validation", question: "(+) Completa: '_________ do you live?' (¿Dónde vives?)", accepted: ["where"], exp: "Where se usa para localización." },
+                    { type: "drag-drop", question: "(+) Ordena: '¿Qué estás haciendo?'", pool: ["doing", "are", "you", "What"], correctOrder: ["What", "are", "you", "doing"], exp: "Estructura combinada con Present Continuous." },
+                    { type: "multiple-choice", question: "(-) Pregunta negativa bien formulada:", options: ["Where do you not play?", "Where you not do play?", "Where not do you play?"], correct: "Where do you not play?", exp: "El orden correcto sitúa al 'not' después del pronombre." },
+                    { type: "listening-api", phraseToSpeak: "Why are you crying", question: "(+) Escucha con atención:", options: ["Why are you crying", "Who are you crying", "Why is he crying"], correct: "Why are you crying", exp: "Pregunta por la causa de la acción." },
+                    { type: "writing-validation", question: "(-) Completa: 'Why is he _____ cooking?' (¿Por qué él no está cocinando?)", accepted: ["not"], exp: "Usa 'not' para negar en preguntas continuas." },
+                    { type: "multiple-choice", question: "(+) ¿Qué significa 'Which color do you like?'", options: ["¿Cuál color te gusta?", "¿Qué color odias?", "¿Cuántos colores tienes?"], correct: "¿Cuál color te gusta?", exp: "Which se utiliza cuando hay opciones limitadas para elegir." }
                 ],
                 summary: "<h3>Resumen</h3><p>Sabes usar palabras clave para hacer preguntas afirmativas y negativas.</p>"
             },
@@ -750,7 +838,22 @@
                     { type: "multiple-choice", question: "(-) 'We do not like the _______.' (No nos gusta el desfile)", options: ["parade", "costume", "candy"], correct: "parade", exp: "Parade significa desfile." },
                     { type: "writing-validation", question: "(+) Escribe 'Disfraz' en inglés:", accepted: ["costume"], exp: "Se escribe c-o-s-t-u-m-e." },
                     { type: "multiple-choice", question: "(+) Luces brillantes en el cielo nocturno:", options: ["Fireworks", "Costumes", "Parades"], correct: "Fireworks", exp: "Fireworks son fuegos artificiales." },
-                    { type: "writing-validation", question: "(-) Completa la negación: 'They ____ not celebrate carnival.'", accepted: ["do"], exp: "Usa el auxiliar 'do' para la negación en presente." }
+                    { type: "writing-validation", question: "(-) Completa la negación: 'They ____ not celebrate carnival.'", accepted: ["do"], exp: "Usa el auxiliar 'do' para la negación en presente." },
+                    { type: "multiple-choice", question: "(+) Los niños piden esto en Halloween:", options: ["Candy", "Mask", "Music"], correct: "Candy", exp: "Candy significa dulces o golosinas." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Me encantan los desfiles.'", pool: ["parades", "love", "I"], correctOrder: ["I", "love", "parades"], exp: "Sujeto + Verbo + Objeto plural." },
+                    { type: "listening-api", phraseToSpeak: "We watch fireworks", question: "(+) Escucha el audio:", options: ["We watch fireworks", "We do not watch fireworks", "They watch fireworks"], correct: "We watch fireworks", exp: "Acción afirmativa de presenciar fuegos artificiales." },
+                    { type: "writing-validation", question: "(-) Traduce: 'Yo no uso un disfraz.'", accepted: ["I do not wear a costume"], exp: "Wear es el verbo apropiado para usar ropa o disfraces." },
+                    { type: "multiple-choice", question: "(-) Completa la frase: 'This festival is ______ boring.' (Este festival no es aburrido)", options: ["not", "no", "don't"], correct: "not", exp: "Usa 'not' para negar adjetivos." },
+                    { type: "drag-drop", question: "(-) Ordena: 'Ellos no compran dulces.'", pool: ["candy", "buy", "not", "do", "They"], correctOrder: ["They", "do", "not", "buy", "candy"], exp: "Estructura clásica de negación en presente." },
+                    { type: "writing-validation", question: "(+) Traduce la palabra 'Música':", accepted: ["music"], exp: "Se escribe m-u-s-i-c." },
+                    { type: "listening-api", phraseToSpeak: "I love this carnival", question: "(+) Escucha el audio:", options: ["I love this carnival", "I do not love this carnival", "We love this carnival"], correct: "I love this carnival", exp: "Carnival significa carnaval." },
+                    { type: "multiple-choice", question: "(+) Objeto para cubrir la cara en una fiesta de disfraces:", options: ["Mask", "Candy", "Balloon"], correct: "Mask", exp: "Mask es una máscara o antifaz." },
+                    { type: "writing-validation", question: "(-) Completa: 'We do _____ need balloons.' (No necesitamos globos)", accepted: ["not"], exp: "Falta la partícula de negación 'not'." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Ella hace un pastel.'", pool: ["cake", "makes", "She"], correctOrder: ["She", "makes", "cake"], exp: "She usa el verbo con 's' (makes)." },
+                    { type: "multiple-choice", question: "(-) ¿Cómo se traduce 'No hay una fiesta hoy'?", options: ["There is not a party today", "There no is a party today", "Party is not today"], correct: "There is not a party today", exp: "There is not es la forma existencial negativa." },
+                    { type: "listening-api", phraseToSpeak: "The costume is scary", question: "(+) Escucha con atención:", options: ["The costume is scary", "The costume is beautiful", "It is a scary costume"], correct: "The costume is scary", exp: "Scary significa aterrador o espeluznante." },
+                    { type: "writing-validation", question: "(+) Traduce la palabra 'Celebración':", accepted: ["celebration"], exp: "Se escribe c-e-l-e-b-r-a-t-i-o-n." },
+                    { type: "multiple-choice", question: "(+) ¿Qué significa la oración 'We dance together'?", options: ["Bailamos juntos", "Cantamos juntos", "Comemos juntos"], correct: "Bailamos juntos", exp: "Dance es bailar y together es juntos." }
                 ],
                 summary: "<h3>Resumen</h3><p>Vocabulario festivo asimilado con éxito.</p>"
             },
@@ -765,7 +868,22 @@
                     { type: "multiple-choice", question: "(-) What fruit does Kiko NOT like?", options: ["Bananas", "Apples", "Grapes"], correct: "Bananas", exp: "Dice explícitamente: 'He does not like bananas'." },
                     { type: "writing-validation", question: "(+) Is Kiko a small or big koala?", accepted: ["small", "a small koala"], exp: "Kiko es un 'small koala'." },
                     { type: "multiple-choice", question: "(+) How is Kiko today?", options: ["Happy", "Sad", "Angry"], correct: "Happy", exp: "Termina diciendo 'Kiko is happy today'." },
-                    { type: "writing-validation", question: "(-) Complete based on text: 'He does _____ like bananas.'", accepted: ["not"], exp: "Palabra clave de negación." }
+                    { type: "writing-validation", question: "(-) Complete based on text: 'He does _____ like bananas.'", accepted: ["not"], exp: "Palabra clave de negación." },
+                    { type: "multiple-choice", question: "(+) What color is the forest?", options: ["Green", "Yellow", "Blue"], correct: "Green", exp: "El texto dice 'green forest'." },
+                    { type: "drag-drop", question: "(+) Reordena el gusto de Kiko:", pool: ["apples", "likes", "He"], correctOrder: ["He", "likes", "apples"], exp: "A Kiko le gustan las manzanas según la lectura." },
+                    { type: "listening-api", phraseToSpeak: "Kiko is a koala", question: "(+) Escucha el audio:", options: ["Kiko is a koala", "Kiko is a bear", "Kiko is happy"], correct: "Kiko is a koala", exp: "Afirmación sobre la especie de Kiko." },
+                    { type: "writing-validation", question: "(-) Verdadero o Falso: 'Kiko likes bananas.' Escribe true o false:", accepted: ["false"], exp: "Es falso porque el texto dice que NO le gustan." },
+                    { type: "multiple-choice", question: "(-) Completa: 'Kiko is ______ a big animal.'", options: ["not", "no", "does"], correct: "not", exp: "Kiko es pequeño, por ende NO es grande." },
+                    { type: "drag-drop", question: "(-) Ordena la negación de la historia:", pool: ["bananas", "like", "not", "does", "He"], correctOrder: ["He", "does", "not", "like", "bananas"], exp: "Estructura correcta de tercera persona negativa." },
+                    { type: "writing-validation", question: "(+) Escribe qué animal es Kiko:", accepted: ["koala", "a koala"], exp: "Kiko es un koala." },
+                    { type: "listening-api", phraseToSpeak: "He lives in a forest", question: "(+) Escucha el audio:", options: ["He lives in a forest", "He lives in a tree", "He does not live here"], correct: "He lives in a forest", exp: "Confirma su hogar." },
+                    { type: "multiple-choice", question: "(+) ¿Qué fruta sí come Kiko?", options: ["Apples", "Bananas", "Oranges"], correct: "Apples", exp: "El texto dice 'He likes apples'." },
+                    { type: "writing-validation", question: "(-) Completa: 'Kiko is not ______ today.' (Kiko no está triste hoy)", accepted: ["sad"], exp: "Él está feliz (happy), por lo que no está triste (sad)." },
+                    { type: "drag-drop", question: "(+) Ordena: 'Kiko es feliz.'", pool: ["happy", "is", "Kiko"], correctOrder: ["Kiko", "is", "happy"], exp: "Sujeto + is + adjetivo." },
+                    { type: "multiple-choice", question: "(-) Selecciona la frase que NO coincide con la historia:", options: ["Kiko lives in a big city", "Kiko is a small koala", "Kiko likes apples"], correct: "Kiko lives in a big city", exp: "Es falsa porque vive en el bosque." },
+                    { type: "listening-api", phraseToSpeak: "Kiko is happy today", question: "(+) Escucha el audio:", options: ["Kiko is happy today", "Kiko is sad today", "He is not happy today"], correct: "Kiko is happy today", exp: "Expresa su estado de ánimo actual." },
+                    { type: "writing-validation", question: "(+) ¿De qué color es su bosque? Tradúcelo al inglés:", accepted: ["green"], exp: "Verde se escribe green." },
+                    { type: "multiple-choice", question: "(+) Si Kiko no fuera un koala, la historia sería incorrecta. ¿Qué es Kiko?", options: ["A koala", "A monkey", "A kangaroo"], correct: "A koala", exp: "Punto inicial del texto descriptivo." }
                 ],
                 summary: "<h3>Resumen</h3><p>Comprensión de lectura superada analizando datos explícitos.</p>"
             },
@@ -780,7 +898,22 @@
                     { type: "listening-api", phraseToSpeak: "I do not like football", question: "(-) Escucha el audio y selecciona la frase:", options: ["I like football", "I do not like football", "She likes football"], correct: "I do not like football", exp: "Frase negativa reproducida." },
                     { type: "listening-api", phraseToSpeak: "She is reading", question: "(+) Escucha y selecciona:", options: ["She is reading", "She is writing", "She is not reading"], correct: "She is reading", exp: "Presente continuo afirmativo." },
                     { type: "listening-api", phraseToSpeak: "It is not a blue car", question: "(-) Escucha y selecciona:", options: ["A blue car", "It is a blue car", "It is not a blue car"], correct: "It is not a blue car", exp: "Adjetivo con negación." },
-                    { type: "listening-api", phraseToSpeak: "Where do you live", question: "(+) Escucha y selecciona la pregunta:", options: ["Where do you live", "What do you live", "Who do you live"], correct: "Where do you live", exp: "Pregunta informativa de lugar." }
+                    { type: "listening-api", phraseToSpeak: "Where do you live", question: "(+) Escucha y selecciona la pregunta:", options: ["Where do you live", "What do you live", "Who do you live"], correct: "Where do you live", exp: "Pregunta informativa de lugar." },
+                    { type: "listening-api", phraseToSpeak: "He runs quickly", question: "(+) Escucha el audio:", options: ["He runs quickly", "He runs slowly", "They run quickly"], correct: "He runs quickly", exp: "Adverbio de modo afirmativo." },
+                    { type: "listening-api", phraseToSpeak: "We are not cooking", question: "(-) Escucha el audio:", options: ["We are not cooking", "We are cooking", "She is not cooking"], correct: "We are not cooking", exp: "Forma negativa continua." },
+                    { type: "listening-api", phraseToSpeak: "Who is that boy", question: "(+) Escucha el audio:", options: ["Who is that boy", "What is that boy", "Where is that boy"], correct: "Who is that boy", exp: "Pregunta por una persona." },
+                    { type: "listening-api", phraseToSpeak: "The apples are green", question: "(+) Escucha el audio:", options: ["The apples are green", "The apples are red", "The apple is green"], correct: "The apples are green", exp: "Adjetivo plural." },
+                    { type: "listening-api", phraseToSpeak: "I do not wear a mask", question: "(-) Escucha el audio:", options: ["I do not wear a mask", "I wear a mask", "He does not wear a mask"], correct: "I do not wear a mask", exp: "Negación del verbo wear." },
+                    { type: "listening-api", phraseToSpeak: "Why are you sad", question: "(+) Escucha el audio:", options: ["Why are you sad", "Why are you happy", "Who is sad"], correct: "Why are you sad", exp: "Pregunta WH sobre un estado emocional." },
+                    { type: "listening-api", phraseToSpeak: "She speaks quietly", question: "(+) Escucha el audio:", options: ["She speaks quietly", "She speaks loudly", "I speak quietly"], correct: "She speaks quietly", exp: "Adverbio quietamente." },
+                    { type: "listening-api", phraseToSpeak: "It is a big house", question: "(+) Escucha el audio:", options: ["It is a big house", "It is a small house", "They are big houses"], correct: "It is a big house", exp: "Adjetivo calificativo de tamaño." },
+                    { type: "listening-api", phraseToSpeak: "We do not play tennis", question: "(-) Escucha el audio:", options: ["We do not play tennis", "We play tennis", "I do not play tennis"], correct: "We do not play tennis", exp: "Negación en plural." },
+                    { type: "listening-api", phraseToSpeak: "What is your favorite sport", question: "(+) Escucha el audio:", options: ["What is your favorite sport", "What is your name", "Where is your sport"], correct: "What is your favorite sport", exp: "Pregunta extendida sobre gustos deportivos." },
+                    { type: "listening-api", phraseToSpeak: "The cat is sleeping", question: "(+) Escucha el audio:", options: ["The cat is sleeping", "The dog is sleeping", "The cat is jumping"], correct: "The cat is sleeping", exp: "Acción en curso." },
+                    { type: "listening-api", phraseToSpeak: "He does not walk slowly", question: "(-) Escucha el audio:", options: ["He does not walk slowly", "He walks slowly", "She does not walk slowly"], correct: "He does not walk slowly", exp: "Combinación de negación y adverbio." },
+                    { type: "listening-api", phraseToSpeak: "I love fireworks", question: "(+) Escucha el audio:", options: ["I love fireworks", "I do not like fireworks", "We love fireworks"], correct: "I love fireworks", exp: "Expresión afirmativa de entusiasmo." },
+                    { type: "listening-api", phraseToSpeak: "They are not running", question: "(-) Escucha el audio:", options: ["They are not running", "They are running", "We are not running"], correct: "They are not running", exp: "Acción continua negada." },
+                    { type: "listening-api", phraseToSpeak: "Where is the green forest", question: "(+) Escucha el audio:", options: ["Where is the green forest", "What is the green forest", "Where is the koala"], correct: "Where is the green forest", exp: "Pregunta compuesta de lugar." }
                 ],
                 summary: "<h3>Resumen</h3><p>Oído afinado para captar estructuras afirmativas y negativas nativas.</p>"
             },
@@ -795,14 +928,29 @@
                     { type: "writing-validation", question: "(-) Traduce de forma exacta: 'Yo no soy bueno en el fútbol'", accepted: ["I am not good at football", "I am not good at soccer"], exp: "Lleva 'not' entre am y good." },
                     { type: "writing-validation", question: "(+) Completa la acción continua: 'I am _________ (leyendo) a book.'", accepted: ["reading"], exp: "Reading es leyendo." },
                     { type: "writing-validation", question: "(-) Escribe la palabra que falta para negar: 'He does ____ play tennis.'", accepted: ["not"], exp: "Does + not forma la negación." },
-                    { type: "writing-validation", question: "(+) Traduce: 'Un libro rojo'", accepted: ["A red book", "a red book"], exp: "El adjetivo de color antecede al libro." }
+                    { type: "writing-validation", question: "(+) Traduce: 'Un libro rojo'", accepted: ["A red book", "a red book"], exp: "El adjetivo de color antecede al libro." },
+                    { type: "writing-validation", question: "(+) Escribe en inglés: 'Nosotros jugamos baloncesto'", accepted: ["We play basketball"], exp: "Sujeto + Verbo + Objeto." },
+                    { type: "writing-validation", question: "(-) Escribe la palabra que falta: 'I do ____ swim.'", accepted: ["not"], exp: "Partícula indispensable de negación simple." },
+                    { type: "writing-validation", question: "(+) Traduce: 'Ella es buena corriendo'", accepted: ["She is good at running"], exp: "Recuerda que running lleva doble 'n'." },
+                    { type: "writing-validation", question: "(-) Traduce: 'Ellos no son buenos cantando'", accepted: ["They are not good at singing"], exp: "Forma plural negativa de destreza." },
+                    { type: "writing-validation", question: "(+) Completa la acción: 'The cat is _________ (saltando).'", accepted: ["jumping"], exp: "Jump + ing = jumping." },
+                    { type: "writing-validation", question: "(-) Completa: 'We are _____ sleeping.' (Nosotros no estamos durmiendo)", accepted: ["not"], exp: "Negación del Present Continuous." },
+                    { type: "writing-validation", question: "(+) Convierte el adjetivo 'Quick' en adverbio para rellenar: 'He runs _________.'", accepted: ["quickly"], exp: "Quickly es rápidamente." },
+                    { type: "writing-validation", question: "(-) Traduce: 'Ella no camina lentamente'", accepted: ["She does not walk slowly"], exp: "Auxiliar 'does not' para tercera persona." },
+                    { type: "writing-validation", question: "(+) Traduce la frase entera: 'Un carro rápido'", accepted: ["A fast car"], exp: "Adjetivo + sustantivo singular." },
+                    { type: "writing-validation", question: "(-) Completa: 'Those apples _____ not red.'", accepted: ["are"], exp: "Apples es plural, por tanto corresponde are." },
+                    { type: "writing-validation", question: "(+) Escribe la palabra de pregunta para: '¿Dónde está mi perro?'", accepted: ["where"], exp: "Where interroga locación." },
+                    { type: "writing-validation", question: "(-) Completa la pregunta: 'Why ____ you not studying?'", accepted: ["are"], exp: "El pronombre you enlaza con are." },
+                    { type: "writing-validation", question: "(+) Escribe la palabra 'Disfraz' en inglés:", accepted: ["costume"], exp: "C-o-s-t-u-m-e." },
+                    { type: "writing-validation", question: "(-) Traduce: 'No tenemos dulces'", accepted: ["We do not have candy", "We don't have candy"], exp: "Do not para primera persona plural." },
+                    { type: "writing-validation", question: "(+) Traduce la última palabra de la historia de Kiko: 'Feliz'", accepted: ["happy"], exp: "¡Felicitaciones! Happy es feliz." }
                 ],
                 summary: "<h3>Resumen General</h3><p>¡Increíble! Has culminado con éxito todas las fases de escritura compleja del mapa de aventuras.</p>"
             }
         };
 
         /**
-         * ENGINE MANAGER DE LA PLATAFORMA
+         * ENGINE MANAGER DE LA PLATAFORMA (LÓGICA MEJORADA DE ALEATORIEDAD)
          */
         class EnglishAdventureApp {
             constructor() {
@@ -819,7 +967,7 @@
 
                 this.selectedOption = null;
                 this.activeQuestionsOrder = []; 
-                this.mobileSelectedWords = []; // Array temporal para guardar las palabras seleccionadas en móvil/click
+                this.mobileSelectedWords = [];
             }
 
             init() {
@@ -898,7 +1046,9 @@
                 this.currentStep = 0;
                 this.currentQuestionIdx = 0;
 
-                this.activeQuestionsOrder = [...CLASS_DATASET[levelNum].questions].sort(() => Math.random() - 0.5);
+                // EXCELENTE: Mezcla el set de 20 preguntas y corta las primeras 5 para la sesión de juego activa
+                const fullPool = [...CLASS_DATASET[levelNum].questions];
+                this.activeQuestionsOrder = fullPool.sort(() => Math.random() - 0.5).slice(0, 5);
 
                 document.getElementById('view-map').classList.remove('active');
                 document.getElementById('view-class').classList.add('active');
@@ -1048,10 +1198,8 @@
                 this.selectedOption = val;
             }
 
-            /* MECANISMO NUEVO DE CLICK INTERACTIVO (IDEAL PARA TELÉFONOS) */
             handleWordClick(el, word) {
                 if (el.classList.contains('used')) return;
-                
                 el.classList.add('used');
                 this.mobileSelectedWords.push({ id: el.id, text: word });
                 this.refreshMobileDropZone();
@@ -1080,7 +1228,6 @@
                 document.getElementById('drop-zone-target').innerHTML = "Suelta las palabras aquí o tócalas...";
             }
 
-            /* SOPORTE MEJORADO PARA DRAG AND DROP NATIVO EN PC */
             handleDragStart(e, w, id) { 
                 e.dataTransfer.setData("text/plain", w); 
                 e.dataTransfer.setData("element-id", id);
@@ -1113,7 +1260,6 @@
                 }
             }
 
-            /* EMULACIÓN ADICIONAL PARA PANTALLAS TÁCTILES MÓVILES EXTREMAS */
             handleTouchStart(e, w, id) {
                 this.activeTouchData = { text: w, id: id };
             }
@@ -1131,8 +1277,6 @@
             }
 
             flowNext() {
-                const data = CLASS_DATASET[this.currentLevel];
-
                 if (this.currentStep === 2) {
                     const q = this.activeQuestionsOrder[this.currentQuestionIdx];
                     let isCorrect = false;
@@ -1182,7 +1326,7 @@
                     this.currentStep++;
                     this.renderCurrentStepInFlow();
                 } else {
-                    this.finalizeLevelCompletion(data);
+                    this.finalizeLevelCompletion();
                 }
             }
 
@@ -1194,7 +1338,8 @@
                 }
             }
 
-            finalizeLevelCompletion(levelData) {
+            finalizeLevelCompletion() {
+                const levelData = CLASS_DATASET[this.currentLevel];
                 levelData.vocabItems.forEach(item => {
                     if (!this.progress.learnedVocabulary.some(v => v.eng.toLowerCase() === item.eng.toLowerCase())) {
                         this.progress.learnedVocabulary.push(item);
