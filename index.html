@@ -1421,6 +1421,74 @@
 
         const app = new EnglishAdventureApp();
         window.addEventListener('DOMContentLoaded', () => app.init());
+        // ==========================================
+// SISTEMA DE PERSISTENCIA Y REINICIO DE CURSO
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Crear el botón dinámicamente para no alterar tu HTML manual
+    const btnReiniciar = document.createElement('button');
+    btnReiniciar.id = 'btn-reiniciar-curso';
+    btnReiniciar.innerText = 'Reiniciar Curso y Progreso';
+    
+    // Estilos para que se adapte elegantemente a la interfaz
+    Object.assign(btnReiniciar.style, {
+        display: 'none',
+        marginTop: '20px',
+        padding: '12px 24px',
+        backgroundColor: '#d32f2f',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '6px',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+        transition: 'background-color 0.2s'
+    });
+
+    btnReiniciar.onmouseover = () => btnReiniciar.style.backgroundColor = '#f44336';
+    btnReiniciar.onmouseout = () => btnReiniciar.style.backgroundColor = '#d32f2f';
+
+    // 2. Insertar el botón automáticamente en el contenedor principal o al final del body
+    // Intenta buscar tu contenedor del diploma o se añade al final de la app
+    const contenedorApp = document.getElementById('contenedor-diploma') || document.body;
+    contenedorApp.appendChild(btnReiniciar);
+
+    // 3. Verificar si el curso ya estaba completado de forma persistente
+    if (localStorage.getItem('cursoCompletado') === 'true') {
+        btnReiniciar.style.display = 'block';
+    }
+
+    // 4. Escuchar el evento de cuando el usuario obtiene el diploma
+    // Interceptamos de forma segura sin alterar tus funciones originales
+    const originalMostrarDiploma = window.mostrarDiploma; 
+    if (typeof originalMostrarDiploma === 'function') {
+        window.mostrarDiploma = function(...args) {
+            localStorage.setItem('cursoCompletado', 'true');
+            btnReiniciar.style.display = 'block';
+            return originalMostrarDiploma.apply(this, args);
+        };
+    } else {
+        // Si tu función final tiene otro nombre (ej. finalizarCurso), puedes llamarla aquí
+        // O si ya funciona de forma nativa, el paso 3 asegura el comportamiento al recargar.
+    }
+
+    // 5. Lógica del botón de reinicio
+    btnReiniciar.addEventListener('click', () => {
+        if (confirm("¿Estás seguro de que deseas reiniciar todo tu progreso desde cero?")) {
+            // Limpiamos los registros del navegador
+            localStorage.removeItem('cursoCompletado');
+            
+            // Si manejas almacenamiento de progreso pregunta por pregunta, límpialos aquí:
+            localStorage.removeItem('progresoActual'); 
+            localStorage.removeItem('respuestasCorrectas');
+
+            // Ocultamos el botón y recargamos la app limpia
+            btnReiniciar.style.display = 'none';
+            location.reload();
+        }
+    });
+});
     </script>
 </body>
 </html>
