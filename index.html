@@ -436,31 +436,49 @@
         }
 
         .drag-container { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; justify-content: center; }
+        
         .drag-item {
             background: white;
             border: 2px solid #e5e5e5;
             padding: 12px 24px;
             border-radius: 14px;
-            cursor: grab;
+            cursor: pointer;
             font-weight: bold;
             box-shadow: 0 4px 0 #e5e5e5;
             font-size: 18px;
+            touch-action: manipulation;
+            transition: opacity 0.2s;
+        }
+        
+        .drag-item.used {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: translateY(2px);
         }
 
         .drop-zone {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
             border: 3px dashed #cbd5e1;
             background: #f8fafc;
-            min-height: 60px;
+            min-height: 70px;
             border-radius: 16px;
-            padding: 10px;
+            padding: 12px;
             font-weight: bold;
             color: #94a3b8;
             margin-top: 15px;
         }
         .drop-zone.hover { background: #edf7ff; border-color: var(--secondary); }
+
+        .drop-zone .drag-item {
+            box-shadow: 0 2px 0 #e5e5e5;
+            padding: 8px 16px;
+            font-size: 16px;
+        }
 
         .text-input-field {
             width: 100%;
@@ -617,7 +635,6 @@
     <script>
         /**
          * BANCO DE DATOS DE LAS 10 CLASES CON 5 PREGUNTAS MIXTAS CADA UNA
-         * Balance completo de estructuras afirmativas (+) y formas negativas (-).
          */
         const CLASS_DATASET = {
             1: {
@@ -790,8 +807,8 @@
         class EnglishAdventureApp {
             constructor() {
                 this.currentLevel = 1;
-                this.currentStep = 0; // 0: Aprender, 1: Ejemplos, 2: Actividad, 3: Retroalimentación, 4: Resumen
-                this.currentQuestionIdx = 0; // Índice interno para las 5 preguntas (0 a 4)
+                this.currentStep = 0; 
+                this.currentQuestionIdx = 0; 
                 this.teacherMode = true;
                 
                 this.progress = {
@@ -802,6 +819,7 @@
 
                 this.selectedOption = null;
                 this.activeQuestionsOrder = []; 
+                this.mobileSelectedWords = []; // Array temporal para guardar las palabras seleccionadas en móvil/click
             }
 
             init() {
@@ -880,7 +898,6 @@
                 this.currentStep = 0;
                 this.currentQuestionIdx = 0;
 
-                // Clonar y mezclar de forma aleatoria las 5 preguntas del nivel seleccionado
                 this.activeQuestionsOrder = [...CLASS_DATASET[levelNum].questions].sort(() => Math.random() - 0.5);
 
                 document.getElementById('view-map').classList.remove('active');
@@ -909,8 +926,8 @@
                 
                 feedback.className = 'feedback-panel';
                 this.selectedOption = null;
+                this.mobileSelectedWords = [];
 
-                // Sincronizar barra de estado principal
                 for (let s = 0; s < 5; s++) {
                     const dot = document.getElementById(`dot-${s}`);
                     dot.className = 'step-dot';
@@ -966,10 +983,10 @@
             renderActiveQuestionSlot() {
                 const core = document.getElementById('class-content-core');
                 const q = this.activeQuestionsOrder[this.currentQuestionIdx];
+                this.mobileSelectedWords = [];
                 
                 let html = `<div style="font-size:18px; font-weight:bold; margin-bottom:15px;">${q.question}</div>`;
 
-                // Barra de seguimiento para las subpreguntas
                 let trackerHTML = `<div class="subquestion-tracker">`;
                 for(let i=0; i<5; i++) {
                     let stateClass = "";
@@ -993,15 +1010,27 @@
                     html += `</div>`;
                 } 
                 else if (q.type === "drag-drop") {
-                    html += `<div class="drag-container">`;
+                    html += `<div class="drag-container" id="words-pool-container">`;
                     const mixedPool = [...q.pool].sort(() => Math.random() - 0.5);
                     mixedPool.forEach((w, idx) => {
-                        html += `<div class="drag-item" draggable="true" id="drg-${idx}" ondragstart="app.handleDragStart(event, '${w}')">${w}</div>`;
+                        html += `
+                            <div class="drag-item" 
+                                 draggable="true" 
+                                 id="drg-${idx}" 
+                                 onclick="app.handleWordClick(this, '${w}')"
+                                 ondragstart="app.handleDragStart(event, '${w}', 'drg-${idx}')"
+                                 ontouchstart="app.handleTouchStart(event, '${w}', 'drg-${idx}')">
+                                 ${w}
+                            </div>`;
                     });
                     html += `
                         </div>
-                        <div class="drop-zone" id="drop-zone-target" ondragover="app.handleDragOver(event)" ondragleave="app.handleDragLeave(event)" ondrop="app.handleDrop(event)">
-                            Suelta las palabras aquí en orden...
+                        <div class="drop-zone" id="drop-zone-target" 
+                             ondragover="app.handleDragOver(event)" 
+                             ondragleave="app.handleDragLeave(event)" 
+                             ondrop="app.handleDrop(event)"
+                             ontouchend="app.handleTouchEnd(event)">
+                            Suelta las palabras aquí o tócalas...
                         </div>
                         <button class="btn btn-secondary" style="margin-top:10px; padding:4px 8px; font-size:11px;" onclick="app.clearDropZone()">Limpiar</button>
                     `;
@@ -1019,26 +1048,87 @@
                 this.selectedOption = val;
             }
 
-            handleDragStart(e, w) { e.dataTransfer.setData("text/plain", w); }
-            handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone-target').classList.add('hover'); }
-            handleDragLeave(e) { document.getElementById('drop-zone-target').classList.remove('hover'); }
+            /* MECANISMO NUEVO DE CLICK INTERACTIVO (IDEAL PARA TELÉFONOS) */
+            handleWordClick(el, word) {
+                if (el.classList.contains('used')) return;
+                
+                el.classList.add('used');
+                this.mobileSelectedWords.push({ id: el.id, text: word });
+                this.refreshMobileDropZone();
+            }
+
+            refreshMobileDropZone() {
+                const zone = document.getElementById('drop-zone-target');
+                if (this.mobileSelectedWords.length === 0) {
+                    zone.innerHTML = "Suelta las palabras aquí o tócalas...";
+                    return;
+                }
+                zone.innerHTML = "";
+                this.mobileSelectedWords.forEach(item => {
+                    const span = document.createElement('span');
+                    span.className = 'drag-item';
+                    span.innerText = item.text;
+                    zone.appendChild(span);
+                });
+            }
+
+            clearDropZone() {
+                this.mobileSelectedWords = [];
+                document.querySelectorAll('#words-pool-container .drag-item').forEach(item => {
+                    item.classList.remove('used');
+                });
+                document.getElementById('drop-zone-target').innerHTML = "Suelta las palabras aquí o tócalas...";
+            }
+
+            /* SOPORTE MEJORADO PARA DRAG AND DROP NATIVO EN PC */
+            handleDragStart(e, w, id) { 
+                e.dataTransfer.setData("text/plain", w); 
+                e.dataTransfer.setData("element-id", id);
+            }
+            
+            handleDragOver(e) { 
+                e.preventDefault(); 
+                document.getElementById('drop-zone-target').classList.add('hover'); 
+            }
+            
+            handleDragLeave(e) { 
+                document.getElementById('drop-zone-target').classList.remove('hover'); 
+            }
+            
             handleDrop(e) {
                 e.preventDefault();
                 const zone = document.getElementById('drop-zone-target');
                 zone.classList.remove('hover');
-                if (zone.innerText.includes("Suelta las palabras")) zone.innerText = "";
-                const word = e.dataTransfer.setData("text/plain");
-                if (word) {
-                    const span = document.createElement('span');
-                    span.className = 'drag-item';
-                    span.style.display = 'inline-block';
-                    span.style.margin = '4px';
-                    span.innerText = word;
-                    zone.appendChild(span);
+                
+                const word = e.dataTransfer.getData("text/plain");
+                const id = e.dataTransfer.getData("element-id");
+                
+                if (word && id) {
+                    const originEl = document.getElementById(id);
+                    if (originEl && !originEl.classList.contains('used')) {
+                        originEl.classList.add('used');
+                        this.mobileSelectedWords.push({ id: id, text: word });
+                        this.refreshMobileDropZone();
+                    }
                 }
             }
 
-            clearDropZone() { document.getElementById('drop-zone-target').innerHTML = "Suelta las palabras aquí en orden..."; }
+            /* EMULACIÓN ADICIONAL PARA PANTALLAS TÁCTILES MÓVILES EXTREMAS */
+            handleTouchStart(e, w, id) {
+                this.activeTouchData = { text: w, id: id };
+            }
+
+            handleTouchEnd(e) {
+                if (this.activeTouchData) {
+                    const originEl = document.getElementById(this.activeTouchData.id);
+                    if (originEl && !originEl.classList.contains('used')) {
+                        originEl.classList.add('used');
+                        this.mobileSelectedWords.push({ id: this.activeTouchData.id, text: this.activeTouchData.text });
+                        this.refreshMobileDropZone();
+                    }
+                    this.activeTouchData = null;
+                }
+            }
 
             flowNext() {
                 const data = CLASS_DATASET[this.currentLevel];
@@ -1052,9 +1142,7 @@
                         isCorrect = (this.selectedOption === q.correct);
                     } 
                     else if (q.type === "drag-drop") {
-                        const spans = document.getElementById('drop-zone-target').querySelectorAll('span');
-                        const res = [];
-                        spans.forEach(s => res.push(s.innerText.trim()));
+                        const res = this.mobileSelectedWords.map(item => item.text.trim());
                         isCorrect = (JSON.stringify(res) === JSON.stringify(q.correctOrder));
                     } 
                     else if (q.type === "writing-validation") {
