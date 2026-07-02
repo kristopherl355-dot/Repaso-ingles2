@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Adventure v2.5</title>
+    <title>English Adventure v2.0</title>
     <style>
         /* ==========================================================================
            VARIABLES DE DISEÑO & PALETA DE COLORES (Estilo Duolingo/Kahoot)
@@ -116,6 +116,7 @@
             gap: 5px;
         }
 
+        /* Switch de Modo Profesor */
         .teacher-switch-container {
             display: flex;
             align-items: center;
@@ -176,7 +177,7 @@
         }
 
         /* ==========================================================================
-           VISTA 1: MAPA DE AVENTURA
+           VISTA 1: MAPA DE AVENTURA (10 NIVELES)
            ========================================================================== */
         .map-container {
             display: flex;
@@ -291,7 +292,7 @@
         }
 
         /* ==========================================================================
-           VISTA ENTORNO DE CLASE
+           VISTA 2: ENTORNO DE CLASE FLUJO DE APRENDIZAJE
            ========================================================================== */
         .step-indicator-bar {
             display: grid;
@@ -310,6 +311,7 @@
         .step-dot.active { background: var(--secondary); }
         .step-dot.completed { background: var(--primary); }
 
+        /* Barra para rastrear las 5 preguntas internas */
         .subquestion-tracker {
             display: flex;
             justify-content: center;
@@ -434,7 +436,7 @@
         }
 
         .drag-container { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; justify-content: center; }
-         
+        
         .drag-item {
             background: white;
             border: 2px solid #e5e5e5;
@@ -447,7 +449,7 @@
             touch-action: manipulation;
             transition: opacity 0.2s;
         }
-         
+        
         .drag-item.used {
             opacity: 0.4;
             cursor: not-allowed;
@@ -632,7 +634,7 @@
 
     <script>
         /**
-         * BANCO DE DATOS INTEGRADO (NIVEL 1 Y 2)
+         * BANCO DE DATOS DE LAS 10 CLASES CON 5 PREGUNTAS MIXTAS CADA UNA
          */
         const CLASS_DATASET = {
             1: {
@@ -652,22 +654,7 @@
                     { type: "multiple-choice", question: "(-) Completa la forma negativa: 'I ______ play football.'", options: ["do not", "is not", "am not"], correct: "do not", exp: "Usamos 'do not' para negar verbos en presente con I." },
                     { type: "writing-validation", question: "Escribe en inglés: 'Yo juego tenis' (+)", accepted: ["I play tennis", "I play tennis."], exp: "Sujeto + Verbo + Complemento." },
                     { type: "multiple-choice", question: "(-) Si no juegas baloncesto dices: 'I do not play _________'", options: ["Basketball", "Running", "Swimming"], correct: "Basketball", exp: "Basketball significa baloncesto." },
-                    { type: "writing-validation", question: "Completa la negación: 'I do ____ play tennis.'", accepted: ["not"], exp: "La partícula de negación es 'not'." },
-                    { type: "multiple-choice", question: "(+) Deporte que se juega con una raqueta y una red:", options: ["Tennis", "Basketball", "Running"], correct: "Tennis", exp: "Tennis es tenis." },
-                    { type: "drag-drop", question: "(+) Ordena la frase: 'Yo juego fútbol'", pool: ["football", "play", "I"], correctOrder: ["I", "play", "football"], exp: "El orden correcto es Sujeto + Verbo + Objeto." },
-                    { type: "writing-validation", question: "(+) ¿Cómo se escribe 'Fútbol' en inglés?", accepted: ["football", "soccer"], exp: "Se puede decir football o soccer." },
-                    { type: "multiple-choice", question: "(-) Elige la opción correcta para: 'Yo no nado.'", options: ["I do not swim", "I am not swim", "I no swim"], correct: "I do not swim", exp: "Usamos el auxiliar do not para negar acciones." },
-                    { type: "listening-api", phraseToSpeak: "I play basketball", question: "(+) Escucha el audio y selecciona la opción correcta:", options: ["I play basketball", "I play football", "I do not play basketball"], correct: "I play basketball", exp: "Has escuchado la forma afirmativa." },
-                    { type: "multiple-choice", question: "(+) Significado de 'Running':", options: ["Correr", "Nadar", "Saltar"], correct: "Correr", exp: "Running viene de la acción de correr." },
-                    { type: "writing-validation", question: "(-) Completa: 'We ___ not play tennis.'", accepted: ["do"], exp: "Para 'We' el auxiliar negativo es 'do not'." },
-                    { type: "drag-drop", question: "(-) Ordena: 'Yo no juego baloncesto.'", pool: ["basketball", "play", "not", "I", "do"], correctOrder: ["I", "do", "not", "play", "basketball"], exp: "Sujeto + do + not + verbo + complemento." },
-                    { type: "multiple-choice", question: "(+) Si juegas voleibol dices: 'I play ______'", options: ["volleyball", "swimming", "tennis"], correct: "volleyball", exp: "Volleyball significa voleibol." },
-                    { type: "listening-api", phraseToSpeak: "We do not swim", question: "(-) Escucha el audio y selecciona la opción correcta:", options: ["We do not swim", "We swim", "They do not swim"], correct: "We do not swim", exp: "Se niega con do not swim." },
-                    { type: "writing-validation", question: "(+) Traduce la palabra 'Natación':", accepted: ["swimming"], exp: "Swimming se escribe con doble 'm'." },
-                    { type: "multiple-choice", question: "(-) ¿Cuál está mal escrita?", options: ["I do not play football", "I no play basketball", "I do not swim"], correct: "I no play basketball", exp: "'I no play' es incorrecto en inglés formal." },
-                    { type: "drag-drop", question: "(+) Ordena: 'Nosotros jugamos tenis.'", pool: ["tennis", "play", "We"], correctOrder: ["We", "play", "tennis"], exp: "We (Nosotros) + play (jugamos) + tennis." },
-                    { type: "listening-api", phraseToSpeak: "I do not play soccer", question: "(-) Escucha el audio:", options: ["I do not play soccer", "I play soccer", "He plays soccer"], correct: "I do not play soccer", exp: "Estructura negativa clara." },
-                    { type: "writing-validation", question: "(-) Completa la frase: 'They do not ____ (jugar) basketball.'", accepted: ["play"], exp: "El verbo infinitivo base es play." }
+                    { type: "writing-validation", question: "Completa la negación: 'I do ____ play tennis.'", accepted: ["not"], exp: "La partícula de negación es 'not'." }
                 ],
                 summary: "<h3>Resumen</h3><p>Aprendiste deportes en sus formas afirmativas y negativas usando 'do not'.</p>"
             },
@@ -688,563 +675,607 @@
                     { type: "multiple-choice", question: "(-) Traduce: 'Yo no soy bueno en matemáticas.'", options: ["I am not good at math", "I am good at math", "I do not good at math"], correct: "I am not good at math", exp: "Estructura correcta: am + not + good at." },
                     { type: "drag-drop", question: "(+) Ordena: buena en natación.", pool: ["good", "She", "is", "at", "swimming"], correctOrder: ["She", "is", "good", "at", "swimming"], exp: "Estructura afirmativa limpia." },
                     { type: "drag-drop", question: "(-) Ordena: no soy bueno en tenis.", pool: ["not", "am", "I", "good", "at", "tennis"], correctOrder: ["I", "am", "not", "good", "at", "tennis"], exp: "Estructura negativa con 'not'." },
-                    { type: "writing-validation", question: "Escribe la palabra que falta: 'He is ______ good at cooking' (Él NO es bueno...)", accepted: ["not"], exp: "Falta el 'not' para volver la habilidad negativa." },
-                    { type: "multiple-choice", question: "(+) ¿Qué preposición acompaña siempre a 'good' para indicar habilidad?", options: ["at", "in", "on"], correct: "at", exp: "Siempre se dice 'good at'." },
-                    { type: "writing-validation", question: "(+) Traduce: 'Soy bueno en fútbol.'", accepted: ["I am good at football", "I am good at soccer"], exp: "Sujeto + am + good at + deporte." },
-                    { type: "listening-api", phraseToSpeak: "I am good at swimming", question: "(+) Escucha el audio:", options: ["I am good at swimming", "I am not good at swimming", "He is good at swimming"], correct: "I am good at swimming", exp: "Frase afirmativa de destreza." },
-                    { type: "multiple-choice", question: "(-) 'They are not good ___ basketball.'", options: ["at", "for", "with"], correct: "at", exp: "Incluso en negativo se conserva la preposición 'at'." },
-                    { type: "drag-drop", question: "(+) Ordena: 'Ellos son buenos en música.'", pool: ["good", "at", "music", "They", "are"], correctOrder: ["They", "are", "good", "at", "music"], exp: "They + are + good + at + music." },
-                    { type: "writing-validation", question: "(-) Traduce: 'Él no es bueno en tenis'", accepted: ["He is not good at tennis"], exp: "Usa 'is not' para la tercera persona singular." },
-                    { type: "multiple-choice", question: "(+) Si eres excelente dibujando dices: 'I am _______ drawing.'", options: ["good at", "not good at", "bad at"], correct: "good at", exp: "Good at significa que tienes habilidad para ello." },
-                    { type: "listening-api", phraseToSpeak: "She is not good at running", question: "(-) Escucha el audio y responde:", options: ["She is not good at running", "She is good at running", "I am not good at running"], correct: "She is not good at running", exp: "Se escucha claramente 'is not'." },
-                    { type: "writing-validation", question: "(+) Completa la frase: 'You ___ good at English.'", accepted: ["are"], exp: "El pronombre 'You' requiere el verbo 'are'." },
-                    { type: "multiple-choice", question: "(-) ¿Cuál oración está bien estructurada?", options: ["I am not good at art", "I not am good at art", "I am good not at art"], correct: "I am not good at art", exp: "El 'not' siempre va inmediatamente después del verbo to be." },
-                    { type: "drag-drop", question: "(-) Ordena: 'Nosotros no somos buenos cantando.'", pool: ["singing", "at", "not", "good", "are", "We"], correctOrder: ["We", "are", "not", "good", "at", "singing"], exp: "We + are + not + good + at + singing." },
-                    { type: "writing-validation", question: "(+) Completa: 'I ___ good at running.'", accepted: ["am"], exp: "Pronombre 'I' va con 'am'." },
-                    { type: "multiple-choice", question: "(+) ¿Qué significa 'I am not good at dancing'?", options: ["No soy bueno bailando", "Soy bueno bailando", "No me gusta bailar"], correct: "No soy bueno bailando", exp: "Indica falta de destreza." },
-                    { type: "listening-api", phraseToSpeak: "He is good at math", question: "(+) Escucha el audio:" , options: ["He is good at math", "He is not good at math", "I am good at math"], correct: "He is good at math", exp: "Claramente afirmativo." },
-                    { type: "writing-validation", question: "(-) Completa la frase: 'We are not good ___ running.'", accepted: ["at"], exp: "La estructura exige la preposición at." }
+                    { type: "writing-validation", question: "Escribe la palabra que falta: 'He is ______ good at cooking' (Él NO es bueno...)", accepted: ["not"], exp: "Falta el 'not' para volver la habilidad negativa." }
                 ],
-                summary: "<h3>Resumen</h3><p>Dominaste el uso de 'good at' y su forma negativa 'not good at' con diferentes pronombres.</p>"
+                summary: "<h3>Resumen</h3><p>Ya sabes expresar lo que se te da bien (+) y lo que no (-).</p>"
+            },
+            3: {
+                title: "Present Continuous",
+                method: "Grammar / Reading",
+                vocabItems: [{ eng: "Reading", esp: "Leyendo", ex: "I am reading.", pr: "Riding" }],
+                explain: "<h2>Present Continuous</h2><p>Acciones que están pasando ahora mismo. Añadimos -ing al verbo.</p>",
+                examples: [{ eng: "I am playing (+)", esp: "Estoy jugando." }, { eng: "I am not playing (-)", esp: "No estoy jugando." }],
+                questions: [
+                    { type: "multiple-choice", question: "(+) 'Look! The cat is _______.'", options: ["jumping", "jump", "jumped"], correct: "jumping", exp: "Lleva -ing para indicar continuidad." },
+                    { type: "multiple-choice", question: "(-) Oración negativa correcta:", options: ["I am not reading", "I not am reading", "I am reading not"], correct: "I am not reading", exp: "'not' va después de 'am'." },
+                    { type: "writing-validation", question: "(+) Traduce: 'Yo estoy corriendo.'", accepted: ["I am running", "I am running."], exp: "Recuerda duplicar la n en running." },
+                    { type: "multiple-choice", question: "(-) Completa: 'They are _______ eating.' (Ellos no están comiendo)", options: ["not", "no", "don't"], correct: "not", exp: "Se usa 'not' con el verbo To Be." },
+                    { type: "writing-validation", question: "(+) Escribe el verbo To Be para 'He' en: 'He ____ sleeping.'", accepted: ["is"], exp: "He va acompañado de is." }
+                ],
+                summary: "<h3>Resumen</h3><p>Identificas acciones continuas positivas (+) y negativas (-).</p>"
+            },
+            4: {
+                title: "Adverbs of Manner",
+                method: "Grammar / Writing",
+                vocabItems: [{ eng: "Quickly", esp: "Rápidamente", ex: "He runs quickly.", pr: "Cuicli" }],
+                explain: "<h2>Adverbs of Manner</h2><p>Muestran cómo se hace una acción. Usualmente terminan en -ly.</p>",
+                examples: [{ eng: "He talks loudly (+)", esp: "Él habla fuerte." }, { eng: "He does not walk slowly (-)", esp: "Él no camina lento." }],
+                questions: [
+                    { type: "multiple-choice", question: "(+) Convierte 'Quick' a adverbio de modo:", options: ["Quickly", "Quicks", "Quicked"], correct: "Quickly", exp: "Se añade -ly." },
+                    { type: "multiple-choice", question: "(-) Elige la opción negativa correcta:", options: ["She does not sing happily", "She not sings happily", "She happily not sings"], correct: "She does not sing happily", exp: "Usa 'does not' para la tercera persona." },
+                    { type: "writing-validation", question: "(+) Transforma 'Slow' a adverbio de modo:", accepted: ["slowly"], exp: "Slow + ly = slowly." },
+                    { type: "multiple-choice", question: "(+) 'The teacher speaks _______.' (Tranquilamente)", options: ["quietly", "loudly", "badly"], correct: "quietly", exp: "Quietly es silenciosa o tranquilamente." },
+                    { type: "writing-validation", question: "(-) Completa: 'We do _____ run quickly.'", accepted: ["not"], exp: "Falta 'not' para completar la estructura de la negación." }
+                ],
+                summary: "<h3>Resumen</h3><p>Aprendiste a calificar acciones de forma afirmativa y negativa.</p>"
+            },
+            5: {
+                title: "Adjectives",
+                method: "Reading",
+                vocabItems: [{ eng: "Beautiful", esp: "Hermoso", ex: "A beautiful house.", pr: "Biutiful" }],
+                explain: "<h2>Adjectives</h2><p>Describen cosas. En inglés van antes del objeto y no tienen plural.</p>",
+                examples: [{ eng: "A big tree (+)", esp: "Un árbol grande." }, { eng: "It is not a small car (-)", esp: "No es un carro pequeño." }],
+                questions: [
+                    { type: "multiple-choice", question: "(+) ¿Cómo se dice 'Una manzana roja'?", options: ["A red apple", "A apple red", "Red an apple"], correct: "A red apple", exp: "El adjetivo va antes del sustantivo." },
+                    { type: "multiple-choice", question: "(-) Elige la correcta: 'Esa casa no es grande.'", options: ["That house is not big", "That house not is big", "That house is big not"], correct: "That house is not big", exp: "Is + not + adjetivo." },
+                    { type: "writing-validation", question: "(+) Traduce: 'Un carro azul'", accepted: ["A blue car", "a blue car."], exp: "Color va primero." },
+                    { type: "multiple-choice", question: "(+) ¿Los adjetivos en inglés llevan 's' para plural?", options: ["No, nunca", "Sí, siempre"], correct: "No, nunca", exp: "Los adjetivos son invariables." },
+                    { type: "writing-validation", question: "(-) Completa: 'This book ____ not interesting.'", accepted: ["is"], exp: "Usa 'is' para objetos singulares." }
+                ],
+                summary: "<h3>Resumen</h3><p>Dominas los adjetivos descriptivos y sus posiciones.</p>"
+            },
+            6: {
+                title: "WH Questions",
+                method: "Grammar / Speaking",
+                vocabItems: [{ eng: "Where", esp: "Dónde", ex: "Where is it?", pr: "Guer" }],
+                explain: "<h2>WH Questions</h2><p>Preguntas informativas usando What (Qué), Where (Dónde), Who (Quién).</p>",
+                examples: [{ eng: "Where do you live? (+)", esp: "¿Dónde vives?" }, { eng: "Why are you not sleeping? (-)", esp: "¿Por qué no estás durmiendo?" }],
+                questions: [
+                    { type: "multiple-choice", question: "(+) Pregunta por un lugar:", options: ["Where", "What", "Who"], correct: "Where", exp: "Where es para lugares." },
+                    { type: "multiple-choice", question: "(+) Pregunta por una persona:", options: ["Who", "Where", "What"], correct: "Who", exp: "Who es para personas." },
+                    { type: "writing-validation", question: "(+) Traduce la palabra de pregunta: '¿Qué?'", accepted: ["What", "what"], exp: "What significa qué." },
+                    { type: "multiple-choice", question: "(-) Pregunta negativa: 'Why ____ you not here?'", options: ["are", "is", "am"], correct: "are", exp: "You se usa con are." },
+                    { type: "writing-validation", question: "(+) Completa: '_______ is your name?'", accepted: ["What", "what"], exp: "Pregunta básica de identidad." }
+                ],
+                summary: "<h3>Resumen</h3><p>Sabes usar palabras clave para hacer preguntas afirmativas y negativas.</p>"
+            },
+            7: {
+                title: "Festival Vocabulary",
+                method: "Listening",
+                vocabItems: [{ eng: "Costume", esp: "Disfraz", ex: "Nice costume!", pr: "Costium" }],
+                explain: "<h2>Festival Vocabulary</h2><p>Palabras de celebraciones populares.</p>",
+                examples: [{ eng: "I like costumes (+)", esp: "Me gustan los disfraces." }, { eng: "We do not have fireworks (-)", esp: "No tenemos fuegos artificiales." }],
+                questions: [
+                    { type: "multiple-choice", question: "(+) Ropa especial para festivales o Halloween:", options: ["Costume", "Parade", "School"], correct: "Costume", exp: "Costume es disfraz." },
+                    { type: "multiple-choice", question: "(-) 'We do not like the _______.' (No nos gusta el desfile)", options: ["parade", "costume", "candy"], correct: "parade", exp: "Parade significa desfile." },
+                    { type: "writing-validation", question: "(+) Escribe 'Disfraz' en inglés:", accepted: ["costume"], exp: "Se escribe c-o-s-t-u-m-e." },
+                    { type: "multiple-choice", question: "(+) Luces brillantes en el cielo nocturno:", options: ["Fireworks", "Costumes", "Parades"], correct: "Fireworks", exp: "Fireworks son fuegos artificiales." },
+                    { type: "writing-validation", question: "(-) Completa la negación: 'They ____ not celebrate carnival.'", accepted: ["do"], exp: "Usa el auxiliar 'do' para la negación en presente." }
+                ],
+                summary: "<h3>Resumen</h3><p>Vocabulario festivo asimilado con éxito.</p>"
+            },
+            8: {
+                title: "Reading Comprehension",
+                method: "Reading Story",
+                vocabItems: [{ eng: "Forest", esp: "Bosque", ex: "Kiko lives in the forest.", pr: "Forest" }],
+                explain: "<h2>Story Reading</h2><p>Lee la mini historia: 'Kiko is a small koala. He lives in a green forest. He likes apples. He does not like bananas. Kiko is happy today.'</p>",
+                examples: [{ eng: "He likes apples (+)", esp: "Le gustan las manzanas." }, { eng: "He does not like bananas (-)", esp: "No le gustan los plátanos." }],
+                questions: [
+                    { type: "multiple-choice", question: "(+) Where does Kiko live?", options: ["In a forest", "In a city", "In a house"], correct: "In a forest", exp: "El texto indica que vive en el bosque." },
+                    { type: "multiple-choice", question: "(-) What fruit does Kiko NOT like?", options: ["Bananas", "Apples", "Grapes"], correct: "Bananas", exp: "Dice explícitamente: 'He does not like bananas'." },
+                    { type: "writing-validation", question: "(+) Is Kiko a small or big koala?", accepted: ["small", "a small koala"], exp: "Kiko es un 'small koala'." },
+                    { type: "multiple-choice", question: "(+) How is Kiko today?", options: ["Happy", "Sad", "Angry"], correct: "Happy", exp: "Termina diciendo 'Kiko is happy today'." },
+                    { type: "writing-validation", question: "(-) Complete based on text: 'He does _____ like bananas.'", accepted: ["not"], exp: "Palabra clave de negación." }
+                ],
+                summary: "<h3>Resumen</h3><p>Comprensión de lectura superada analizando datos explícitos.</p>"
+            },
+            9: {
+                title: "Listening Challenge",
+                method: "Listening API",
+                vocabItems: [{ eng: "Listen", esp: "Escuchar", ex: "Listen to me.", pr: "Lisen" }],
+                explain: "<h2>Listening Practice</h2><p>Escucha las frases reales emitidas por el navegador y compáralas.</p>",
+                examples: [{ eng: "Listen carefully (+)", esp: "Escucha atentamente." }],
+                questions: [
+                    { type: "listening-api", phraseToSpeak: "I play basketball", question: "(+) Escucha el audio y selecciona la frase:", options: ["I play basketball", "I do not play basketball", "I play tennis"], correct: "I play basketball", exp: "Frase afirmativa reproducida." },
+                    { type: "listening-api", phraseToSpeak: "I do not like football", question: "(-) Escucha el audio y selecciona la frase:", options: ["I like football", "I do not like football", "She likes football"], correct: "I do not like football", exp: "Frase negativa reproducida." },
+                    { type: "listening-api", phraseToSpeak: "She is reading", question: "(+) Escucha y selecciona:", options: ["She is reading", "She is writing", "She is not reading"], correct: "She is reading", exp: "Presente continuo afirmativo." },
+                    { type: "listening-api", phraseToSpeak: "It is not a blue car", question: "(-) Escucha y selecciona:", options: ["A blue car", "It is a blue car", "It is not a blue car"], correct: "It is not a blue car", exp: "Adjetivo con negación." },
+                    { type: "listening-api", phraseToSpeak: "Where do you live", question: "(+) Escucha y selecciona la pregunta:", options: ["Where do you live", "What do you live", "Who do you live"], correct: "Where do you live", exp: "Pregunta informativa de lugar." }
+                ],
+                summary: "<h3>Resumen</h3><p>Oído afinado para captar estructuras afirmativas y negativas nativas.</p>"
+            },
+            10: {
+                title: "Writing Challenge",
+                method: "Writing / Production",
+                vocabItems: [{ eng: "Challenge", esp: "Desafío", ex: "The final step.", pr: "Chalench" }],
+                explain: "<h2>The Final Writing Challenge</h2><p>Escribe con total precisión gramatical.</p>",
+                examples: [{ eng: "I am good at tennis (+)", esp: "Forma positiva armada." }, { eng: "I am not good at tennis (-)", esp: "Forma negativa armada." }],
+                questions: [
+                    { type: "writing-validation", question: "(+) Traduce al inglés de forma exacta: 'Yo soy bueno en el tenis'", accepted: ["I am good at tennis", "I am good at tennis."], exp: "Usa 'good at' + deporte." },
+                    { type: "writing-validation", question: "(-) Traduce de forma exacta: 'Yo no soy bueno en el fútbol'", accepted: ["I am not good at football", "I am not good at soccer"], exp: "Lleva 'not' entre am y good." },
+                    { type: "writing-validation", question: "(+) Completa la acción continua: 'I am _________ (leyendo) a book.'", accepted: ["reading"], exp: "Reading es leyendo." },
+                    { type: "writing-validation", question: "(-) Escribe la palabra que falta para negar: 'He does ____ play tennis.'", accepted: ["not"], exp: "Does + not forma la negación." },
+                    { type: "writing-validation", question: "(+) Traduce: 'Un libro rojo'", accepted: ["A red book", "a red book"], exp: "El adjetivo de color antecede al libro." }
+                ],
+                summary: "<h3>Resumen General</h3><p>¡Increíble! Has culminado con éxito todas las fases de escritura compleja del mapa de aventuras.</p>"
             }
         };
 
         /**
-         * GENERADOR AUTOMÁTICO DE NIVELES (3 AL 10)
-         * Se encarga de construir matemáticamente las preguntas restantes usando tópicos de 4to grado.
+         * ENGINE MANAGER DE LA PLATAFORMA
          */
-        function generateExtendedLevels() {
-            const themes = [
-                { id: 3, title: "Daily Routines", method: "Reading & Grammar", words: [{e:"Wake up", s:"Despertarse", p:"Ueik ap"}, {e:"Brush teeth", s:"Cepillarse los dientes", p:"Brash tids"}], rule: "Present Simple para rutinas diarias.", ex1: "I wake up at 6 AM (+)", ex2: "I do not sleep late (-)" },
-                { id: 4, title: "School Subjects", method: "Vocabulary / Games", words: [{e:"Science", s:"Ciencias", p:"Saiens"}, {e:"History", s:"Historia", p:"Jistori"}], rule: "Nombres de materias escolares.", ex1: "I like Science (+)", ex2: "I do not like History (-)" },
-                { id: 5, title: "My Beautiful House", method: "Writing Practice", words: [{e:"Kitchen", s:"Cocina", p:"Kitchen"}, {e:"Bedroom", s:"Habitación", p:"Bedrum"}], rule: "Partes de la casa y locaciones.", ex1: "The kitchen is big (+)", ex2: "It is not a small room (-)" },
-                { id: 6, title: "Wild Animals", method: "Listening Skills", words: [{e:"Elephant", s:"Elefante", p:"Elefant"}, {e:"Giraffe", s:"Jirafa", p:"Yiraf"}], rule: "Uso de adjetivos para describir animales.", ex1: "The elephant is big (+)", ex2: "A giraffe is not short (-)" },
-                { id: 7, title: "Healthy Food", method: "Vocabulary Blitz", words: [{e:"Apple", s:"Manzana", p:"Apol"}, {e:"Salad", s:"Ensalada", p:"Salad"}], rule: "Expresar gustos sobre comida saludable.", ex1: "I eat apples (+)", ex2: "I do not like soda (-)" },
-                { id: 8, title: "Weather & Seasons", method: "Grammar Core", words: [{e:"Sunny", s:"Soleado", p:"Sani"}, {e:"Rainy", s:"Lluvioso", p:"Reini"}], rule: "Describir el clima actual.", ex1: "Today is sunny (+)", ex2: "It is not raining (-)" },
-                { id: 9, title: "Places in Town", method: "Reading & Writing", words: [{e:"Supermarket", s:"Supermercado", p:"Supermarket"}, {e:"Park", s:"Parque", p:"Park"}], rule: "Preposiciones de lugar en la ciudad.", ex1: "I go to the park (+)", ex2: "I am not at school (-)" },
-                { id: 10, title: "Review Master Challenge", method: "Final Exam Battle", words: [{e:"Teacher", s:"Profesor/a", p:"Ticher"}, {e:"Student", s:"Estudiante", p:"Student"}], rule: "Repaso integral de todos los temas vistos.", ex1: "I am a good student (+)", ex2: "Learning English is not hard (-)" }
-            ];
-
-            themes.forEach(t => {
-                CLASS_DATASET[t.id] = {
-                    title: t.title,
-                    method: t.method,
-                    vocabItems: t.words.map(w => ({ eng: w.e, esp: w.s, ex: `Example with ${w.e}.`, pr: w.p })),
-                    explain: `<h2>${t.title}</h2><p>Estudiamos las estructuras aplicadas: ${t.rule}</p>`,
-                    examples: [{ eng: t.ex1, esp: "Forma afirmativa." }, { eng: t.ex2, esp: "Forma negativa." }],
-                    questions: []
-                };
-
-                // Inyectar 20 preguntas cíclicas de alta interactividad por cada nivel
-                for (let qNum = 1; qNum <= 20; qNum++) {
-                    let type = "multiple-choice";
-                    if (qNum % 4 === 0) type = "writing-validation";
-                    else if (qNum % 4 === 1) type = "drag-drop";
-                    else if (qNum % 4 === 2) type = "listening-api";
-
-                    let primaryWord = t.words[0].e;
-                    let secondaryWord = t.words[1].e;
-
-                    if (type === "multiple-choice") {
-                        CLASS_DATASET[t.id].questions.push({
-                            type: type,
-                            question: `(Q${qNum}) Selecciona la opción que traduce correctamente la idea del nivel (${t.title}):`,
-                            options: [primaryWord, secondaryWord, "WrongOption"],
-                            correct: primaryWord,
-                            exp: `La respuesta correcta asociada es ${primaryWord}.`
-                        });
-                    } else if (type === "listening-api") {
-                        CLASS_DATASET[t.id].questions.push({
-                            type: type,
-                            phraseToSpeak: `${primaryWord} is awesome`,
-                            question: `(Q${qNum}) Escucha con mucha atención el audio y selecciona el concepto correcto:`,
-                            options: [`${primaryWord} is awesome`, `${secondaryWord} is bad`, "Alternative phrase"],
-                            correct: `${primaryWord} is awesome`,
-                            exp: "El sistema de pronunciación leyó la opción afirmativa."
-                        });
-                    } else if (type === "writing-validation") {
-                        CLASS_DATASET[t.id].questions.push({
-                            type: type,
-                            question: `(Q${qNum}) Escribe exactamente cómo se deletrea la palabra en inglés: '${t.words[0].s}'`,
-                            accepted: [primaryWord],
-                            exp: `Se escribe '${primaryWord}'. Asegúrate de no añadir espacios adicionales.`
-                        });
-                    } else if (type === "drag-drop") {
-                        CLASS_DATASET[t.id].questions.push({
-                            type: type,
-                            question: `(Q${qNum}) Ordena de forma lógica la siguiente expresión en inglés:`,
-                            pool: ["is", primaryWord, "good"],
-                            correctOrder: [primaryWord, "is", "good"],
-                            exp: "Estructura estándar de Oración: Sujeto + Verbo + Adjetivo."
-                        });
-                    }
-                }
-                CLASS_DATASET[t.id].summary = `<h3>Resumen de ${t.title}</h3><p>¡Felicitaciones! Has dominado el nivel y completado con éxito sus 20 retos interactivos.</p>`;
-            });
-        }
-
-        // Ejecutar la expansión del mapa de datos antes del arranque del motor
-        generateExtendedLevels();
-
-        /**
-         * MOTOR DE JUEGO (ARQUITECTURA DE FLUJO DE APRENDIZAJE)
-         */
-        class EnglishAdventure {
+        class EnglishAdventureApp {
             constructor() {
-                this.currentLevel = null;
-                this.flowStep = 0; 
-                this.currentQuestionIdx = 0;
-                this.totalLevels = 10;
-                this.dragSelectedTokens = [];
-                
-                this.player = JSON.parse(localStorage.getItem('ea_player_save')) || {
-                    stars: 0,
-                    unlockedLevels: [1],
-                    completedLevels: [],
-                    vocabulary: []
-                };
-                
+                this.currentLevel = 1;
+                this.currentStep = 0; 
+                this.currentQuestionIdx = 0; 
                 this.teacherMode = true;
+                
+                this.progress = {
+                    unlockedLevel: 1,
+                    starsByLevel: {},
+                    learnedVocabulary: []
+                };
+
+                this.selectedOption = null;
+                this.activeQuestionsOrder = []; 
+                this.mobileSelectedWords = []; // Array temporal para guardar las palabras seleccionadas en móvil/click
             }
 
             init() {
-                this.renderMap();
-                this.updateGlobalUI();
-                this.switchTab('map');
+                this.loadProgressFromStorage();
+                this.renderMapNodes();
+                this.updateGlobalUIStats();
             }
 
-            saveProgress() {
-                localStorage.setItem('ea_player_save', JSON.stringify(this.player));
-                this.updateGlobalUI();
-            }
-
-            updateGlobalUI() {
-                document.getElementById('global-star-count').innerText = this.player.stars;
-                document.getElementById('global-vocab-count').innerText = this.player.vocabulary.length;
-                
-                let progressPercentage = Math.round((this.player.completedLevels.length / this.totalLevels) * 100);
-                document.getElementById('progress-percentage-text').innerText = `${progressPercentage}%`;
-                document.getElementById('map-progress-bar').style.width = `${progressPercentage}%`;
-            }
-
-            switchTab(tab) {
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                
-                if (tab === 'map') {
-                    document.getElementById('view-map').classList.add('active');
-                    document.getElementById('tab-map').classList.add('active');
-                    this.renderMap();
-                } else if (tab === 'vocab') {
-                    document.getElementById('view-vocabulary').classList.add('active');
-                    document.getElementById('tab-vocab').classList.add('active');
-                    this.renderVocabulary();
+            loadProgressFromStorage() {
+                const data = localStorage.getItem('english_adventure_v2_multiq');
+                if (data) {
+                    try {
+                        this.progress = JSON.parse(data);
+                    } catch(e) { console.error(e); }
                 }
             }
 
-            toggleTeacherMode() {
-                this.teacherMode = document.getElementById('teacher-mode-toggle').checked;
-                const teacherBox = document.getElementById('dynamic-teacher-box');
-                if (teacherBox) {
-                    teacherBox.style.display = this.teacherMode ? 'flex' : 'none';
+            saveProgressToStorage() {
+                localStorage.setItem('english_adventure_v2_multiq', JSON.stringify(this.progress));
+                this.updateGlobalUIStats();
+            }
+
+            resetProgress() {
+                if(confirm("¿Deseas reiniciar todo tu progreso de juego?")) {
+                    localStorage.removeItem('english_adventure_v2_multiq');
+                    this.progress = { unlockedLevel: 1, starsByLevel: {}, learnedVocabulary: [] };
+                    this.currentLevel = 1;
+                    this.currentStep = 0;
+                    this.saveProgressToStorage();
+                    this.renderMapNodes();
+                    this.switchTab('map');
                 }
             }
 
-            renderMap() {
+            updateGlobalUIStats() {
+                let stars = 0;
+                Object.values(this.progress.starsByLevel).forEach(v => stars += v);
+                document.getElementById('global-star-count').innerText = stars;
+                document.getElementById('global-vocab-count').innerText = this.progress.learnedVocabulary.length;
+
+                const pct = Math.min(100, Math.round(((this.progress.unlockedLevel - 1) / 10) * 100));
+                document.getElementById('progress-percentage-text').innerText = `${pct}%`;
+                document.getElementById('map-progress-bar').style.width = `${pct}%`;
+            }
+
+            renderMapNodes() {
                 const target = document.getElementById('map-nodes-target');
                 target.innerHTML = '';
-                
-                for (let i = 1; i <= this.totalLevels; i++) {
+                for (let i = 1; i <= 10; i++) {
                     const node = document.createElement('div');
                     node.className = 'level-node';
-                    
-                    let status = 'locked';
-                    if (this.player.completedLevels.includes(i)) status = 'completed';
-                    else if (this.player.unlockedLevels.includes(i)) status = 'unlocked';
-                    
-                    node.classList.add(status);
-                    
-                    let levelTitle = (CLASS_DATASET[i]) ? CLASS_DATASET[i].title : `Próximamente`;
-                    let levelSubtitle = (CLASS_DATASET[i]) ? CLASS_DATASET[i].method : `Bloqueado`;
-                    let starsMarkup = status === 'completed' ? '⭐⭐⭐' : ' Locked';
-                    
+                    const isCompleted = i < this.progress.unlockedLevel;
+                    const isUnlocked = i <= this.progress.unlockedLevel;
+
+                    if (isCompleted) node.classList.add('completed');
+                    else if (isUnlocked) node.classList.add('unlocked');
+
+                    const sCount = this.progress.starsByLevel[i] || 0;
                     node.innerHTML = `
-                        <div class="level-bubble" onclick="app.startLevel(${i}, '${status}')">
-                            ${status === 'completed' ? '✔' : i}
-                        </div>
+                        <div class="level-bubble" onclick="app.enterLevel(${i}, ${isUnlocked})">${isCompleted ? '✓' : i}</div>
                         <div class="level-info-box">
-                            <div class="level-title">${levelTitle}</div>
-                            <div style="font-size:11px; color:#777;">${levelSubtitle}</div>
-                            <div class="level-stars">${starsMarkup}</div>
+                            <div class="level-title">${CLASS_DATASET[i].title}</div>
+                            <div class="level-stars">${"⭐".repeat(sCount) || "0 estrellas"}</div>
                         </div>
                     `;
                     target.appendChild(node);
                 }
             }
 
-            startLevel(levelNum, status) {
-                if (status === 'locked' || !CLASS_DATASET[levelNum]) {
-                    alert("¡Este nivel aún está bloqueado! Completa los niveles anteriores.");
+            enterLevel(levelNum, isUnlocked) {
+                if (!isUnlocked) {
+                    alert("🔒 ¡Completa los niveles anteriores primero!");
                     return;
                 }
                 this.currentLevel = levelNum;
-                this.flowStep = 0; 
+                this.currentStep = 0;
                 this.currentQuestionIdx = 0;
-                
+
+                this.activeQuestionsOrder = [...CLASS_DATASET[levelNum].questions].sort(() => Math.random() - 0.5);
+
                 document.getElementById('view-map').classList.remove('active');
                 document.getElementById('view-class').classList.add('active');
                 document.getElementById('class-view-title').innerText = `Nivel ${levelNum}: ${CLASS_DATASET[levelNum].title}`;
                 
-                this.toggleTeacherMode();
-                this.executeFlowStep();
+                this.renderCurrentStepInFlow();
             }
 
             exitToMap() {
                 document.getElementById('view-class').classList.remove('active');
-                this.switchTab('map');
+                document.getElementById('view-map').classList.add('active');
+                this.renderMapNodes();
+                this.updateGlobalUIStats();
             }
 
-            executeFlowStep() {
-                const fb = document.getElementById('action-feedback-panel');
-                fb.className = 'feedback-panel';
-                fb.style.display = 'none';
+            toggleTeacherMode() {
+                this.teacherMode = document.getElementById('teacher-mode-toggle').checked;
+                document.getElementById('dynamic-teacher-box').style.display = this.teacherMode ? 'flex' : 'none';
+            }
 
-                document.getElementById('btn-flow-back').style.visibility = this.flowStep === 0 ? 'hidden' : 'visible';
-                document.getElementById('btn-flow-next').innerText = "Siguiente";
-
-                document.querySelectorAll('.step-dot').forEach((dot, idx) => {
-                    dot.className = 'step-dot';
-                    if (idx < this.flowStep) dot.classList.add('completed');
-                    if (idx === this.flowStep) dot.classList.add('active');
-                });
-
-                const levelData = CLASS_DATASET[this.currentLevel];
-                const speech = document.getElementById('teacher-speech-text');
+            renderCurrentStepInFlow() {
+                const data = CLASS_DATASET[this.currentLevel];
                 const core = document.getElementById('class-content-core');
+                const feedback = document.getElementById('action-feedback-panel');
+                
+                feedback.className = 'feedback-panel';
+                this.selectedOption = null;
+                this.mobileSelectedWords = [];
 
-                if (this.flowStep === 0) {
-                    speech.innerText = "Hi there! Let's start by learning some essential words for this adventure. Listen carefully and add them to your log!";
-                    
-                    let html = `<div class="vocab-grid">`;
-                    levelData.vocabItems.forEach((item, index) => {
+                for (let s = 0; s < 5; s++) {
+                    const dot = document.getElementById(`dot-${s}`);
+                    dot.className = 'step-dot';
+                    if (s === this.currentStep) dot.classList.add('active');
+                    else if (s < this.currentStep) dot.classList.add('completed');
+                }
+
+                document.getElementById('btn-flow-back').style.visibility = (this.currentStep === 0) ? 'hidden' : 'visible';
+                document.getElementById('btn-flow-next').innerText = (this.currentStep === 2) ? 'Verificar' : (this.currentStep === 4 ? 'Finalizar Nivel' : 'Siguiente');
+
+                switch (this.currentStep) {
+                    case 0:
+                        document.getElementById('teacher-speech-text').innerText = "¡Hola! Analicemos la explicación gramatical del día. Veremos estructuras positivas (+) y negativas (-).";
+                        core.innerHTML = data.explain;
+                        break;
+
+                    case 1:
+                        document.getElementById('teacher-speech-text').innerText = "Escucha la pronunciación de estos ejemplos reales haciendo clic en el parlante.";
+                        let exHTML = `<h3>Ejemplos de Estudio</h3><ul class="example-list">`;
+                        data.examples.forEach(item => {
+                            exHTML += `
+                                <li class="example-item">
+                                    <div><span class="example-eng">${item.eng}</span><br><span class="example-esp">${item.esp}</span></div>
+                                    <div class="audio-icon-btn" onclick="app.speakText('${item.eng.replace(/'/g, "\\'")}')">🔊</div>
+                                </li>`;
+                        });
+                        exHTML += `</ul>`;
+                        core.innerHTML = exHTML;
+                        break;
+
+                    case 2:
+                        document.getElementById('teacher-speech-text').innerText = `Pregunta ${this.currentQuestionIdx + 1} de 5. Resuelve el desafío mixto aplicando la lógica correcta.`;
+                        this.renderActiveQuestionSlot();
+                        break;
+
+                    case 3:
+                        document.getElementById('teacher-speech-text').innerText = "¡Fabuloso! Has superado con éxito la ronda completa de las 5 preguntas del nivel.";
+                        core.innerHTML = `
+                            <div style="text-align:center; padding:15px;">
+                                <span style="font-size:50px;">🎉</span>
+                                <h3 style="color:var(--primary-dark); margin-top:10px;">¡Ronda de Preguntas Superada!</h3>
+                                <p style="margin-top:10px; color:#555;">Hiciste un trabajo impecable balanceando las formas del idioma.</p>
+                            </div>`;
+                        break;
+
+                    case 4:
+                        document.getElementById('teacher-speech-text').innerText = "Aquí tienes tu resumen final listo. Repásalo antes de volver al mapa.";
+                        core.innerHTML = data.summary;
+                        break;
+                }
+            }
+
+            renderActiveQuestionSlot() {
+                const core = document.getElementById('class-content-core');
+                const q = this.activeQuestionsOrder[this.currentQuestionIdx];
+                this.mobileSelectedWords = [];
+                
+                let html = `<div style="font-size:18px; font-weight:bold; margin-bottom:15px;">${q.question}</div>`;
+
+                let trackerHTML = `<div class="subquestion-tracker">`;
+                for(let i=0; i<5; i++) {
+                    let stateClass = "";
+                    if(i === this.currentQuestionIdx) stateClass = "current";
+                    else if(i < this.currentQuestionIdx) stateClass = "correct";
+                    trackerHTML += `<div class="sub-badge ${stateClass}">${i+1}</div>`;
+                }
+                trackerHTML += `</div>`;
+
+                if (q.type === "multiple-choice" || q.type === "listening-api") {
+                    if (q.type === "listening-api") {
                         html += `
-                            <div class="vocab-card">
-                                <div class="vocab-meta">
-                                    <h4>${item.eng}</h4>
-                                    <p><em>Pronunciación: / ${item.pr} /</em></p>
-                                    <p style="color:var(--text-dark); margin-top:5px;"><strong>Significado:</strong> ${item.esp}</p>
-                                    <p style="font-size:13px; color:#555;">Ej: ${item.ex}</p>
-                                </div>
-                                <button class="audio-icon-btn" onclick="app.speakText('${item.eng}')">🔊</button>
-                            </div>
-                        `;
+                            <div style="text-align:center; margin:15px 0;">
+                                <button class="btn btn-secondary" onclick="app.speakText('${q.phraseToSpeak}')" style="border-radius:50%; width:60px; height:60px; font-size:20px; padding:0;">🔊</button>
+                            </div>`;
+                    }
+                    html += `<div class="options-grid">`;
+                    q.options.forEach(opt => {
+                        html += `<div class="option-card" onclick="app.selectOptionCard(this, '${opt}')">${opt}</div>`;
                     });
                     html += `</div>`;
-                    core.innerHTML = html;
-
-                } else if (this.flowStep === 1) {
-                    speech.innerText = "Great! Now let's dive into the grammar rules. Review the structures and look at the contextual examples below.";
-                    
-                    let html = `<div style="padding:10px;">${levelData.explain}`;
-                    html += `<h3 style="margin-top:20px; color:var(--secondary-dark);">Examples:</h3><ul class="example-list">`;
-                    levelData.examples.forEach(ex => {
+                } 
+                else if (q.type === "drag-drop") {
+                    html += `<div class="drag-container" id="words-pool-container">`;
+                    const mixedPool = [...q.pool].sort(() => Math.random() - 0.5);
+                    mixedPool.forEach((w, idx) => {
                         html += `
-                            <li class="example-item">
-                                <div>
-                                    <span class="example-eng">${ex.eng}</span><br>
-                                    <span class="example-esp">${ex.esp}</span>
-                                </div>
-                                <button class="audio-icon-btn" onclick="app.speakText('${ex.eng.replace(/(\(\+\)|\(-\))/g,'')}')">🔊</button>
-                            </li>
-                        `;
+                            <div class="drag-item" 
+                                 draggable="true" 
+                                 id="drg-${idx}" 
+                                 onclick="app.handleWordClick(this, '${w}')"
+                                 ondragstart="app.handleDragStart(event, '${w}', 'drg-${idx}')"
+                                 ontouchstart="app.handleTouchStart(event, '${w}', 'drg-${idx}')">
+                                 ${w}
+                            </div>`;
                     });
-                    html += `</ul></div>`;
-                    core.innerHTML = html;
-
-                } else if (this.flowStep === 2) {
-                    this.renderQuestionStep();
-
-                } else if (this.flowStep === 3) {
-                    speech.innerText = "Awesome job! You have conquered this level. Read the summary and claim your stars!";
-                    core.innerHTML = `<div style="padding:15px; text-align:center;">${levelData.summary}<br>🚀 ¡Listo para desbloquear nuevos horizontes!</div>`;
-                    document.getElementById('btn-flow-next').innerText = "Reclamar Recompensas 🎉";
-                }
-            }
-
-            renderQuestionStep() {
-                const levelData = CLASS_DATASET[this.currentLevel];
-                const q = levelData.questions[this.currentQuestionIdx];
-                const speech = document.getElementById('teacher-speech-text');
-                const core = document.getElementById('class-content-core');
-
-                speech.innerText = `Question ${this.currentQuestionIdx + 1} of ${levelData.questions.length}: Challenge your skills!`;
-                this.dragSelectedTokens = []; 
-
-                let trackerHtml = `<div class="subquestion-tracker">`;
-                for (let i = 0; i < levelData.questions.length; i++) {
-                    let cls = '';
-                    if (i === this.currentQuestionIdx) cls = 'current';
-                    trackerHtml += `<div class="sub-badge ${cls}">${i + 1}</div>`;
-                }
-                trackerHtml += `</div>`;
-
-                let bodyHtml = `<div style="margin-bottom:15px; font-size:18px; font-weight:bold;">${q.question}</div>`;
-
-                if (q.type === 'multiple-choice') {
-                    bodyHtml += `<div class="options-grid">`;
-                    q.options.forEach(opt => {
-                        bodyHtml += `<div class="option-card" onclick="app.selectOptionCard(this, '${opt}')">${opt}</div>`;
-                    });
-                    bodyHtml += `</div>`;
-
-                } else if (q.type === 'writing-validation') {
-                    bodyHtml += `
-                        <input type="text" class="text-input-field" id="write-field-target" placeholder="Escribe tu respuesta aquí..." autocomplete="off">
-                        <p style="margin-top:10px; font-size:12px; color:#777;">Nota: Se validan mayúsculas/minúsculas de forma flexible.</p>
-                    `;
-
-                } else if (q.type === 'drag-drop') {
-                    bodyHtml += `<div class="drop-zone" id="drop-zone-target">Haz clic en las palabras para ordenarlas</div>`;
-                    bodyHtml += `<div class="drag-container">`;
-                    q.pool.forEach((word, idx) => {
-                        bodyHtml += `<div class="drag-item" data-idx="${idx}" onclick="app.handleTokenClick(this, '${word}')">${word}</div>`;
-                    });
-                    bodyHtml += `</div>`;
-
-                } else if (q.type === 'listening-api') {
-                    bodyHtml += `
-                        <div style="text-align:center; margin:15px 0;">
-                            <button class="btn btn-secondary" onclick="app.speakText('${q.phraseToSpeak}')" style="border-radius:50%; width:70px; height:70px; font-size:24px; padding:0; display:inline-flex; justify-content:center; align-items:center;">🔊</button>
-                            <p style="font-size:12px; color:#555; margin-top:5px;">Click para reproducir</p>
+                    html += `
                         </div>
-                        <div class="options-grid">
+                        <div class="drop-zone" id="drop-zone-target" 
+                             ondragover="app.handleDragOver(event)" 
+                             ondragleave="app.handleDragLeave(event)" 
+                             ondrop="app.handleDrop(event)"
+                             ontouchend="app.handleTouchEnd(event)">
+                            Suelta las palabras aquí o tócalas...
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top:10px; padding:4px 8px; font-size:11px;" onclick="app.clearDropZone()">Limpiar</button>
                     `;
-                    q.options.forEach(opt => {
-                        bodyHtml += `<div class="option-card" onclick="app.selectOptionCard(this, '${opt}')">${opt}</div>`;
-                    });
-                    bodyHtml += `</div>`;
+                } 
+                else if (q.type === "writing-validation") {
+                    html += `<input type="text" class="text-input-field" id="writing-input-box" placeholder="Escribe tu respuesta aquí..." autocomplete="off">`;
                 }
 
-                core.innerHTML = trackerHtml + bodyHtml;
-                document.getElementById('btn-flow-next').innerText = "Verificar Respuesta 🔍";
+                core.innerHTML = html + trackerHTML;
             }
 
-            selectOptionCard(element, val) {
+            selectOptionCard(el, val) {
                 document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
-                element.classList.add('selected');
-                element.dataset.selectedVal = val;
+                el.classList.add('selected');
+                this.selectedOption = val;
             }
 
-            handleTokenClick(el, word) {
+            /* MECANISMO NUEVO DE CLICK INTERACTIVO (IDEAL PARA TELÉFONOS) */
+            handleWordClick(el, word) {
                 if (el.classList.contains('used')) return;
+                
                 el.classList.add('used');
-                this.dragSelectedTokens.push({ id: el.dataset.idx, text: word });
-                this.rebuildDropZone();
+                this.mobileSelectedWords.push({ id: el.id, text: word });
+                this.refreshMobileDropZone();
             }
 
-            rebuildDropZone() {
-                const dz = document.getElementById('drop-zone-target');
-                if (this.dragSelectedTokens.length === 0) {
-                    dz.innerText = "Haz clic en las palabras para ordenarlas";
+            refreshMobileDropZone() {
+                const zone = document.getElementById('drop-zone-target');
+                if (this.mobileSelectedWords.length === 0) {
+                    zone.innerHTML = "Suelta las palabras aquí o tócalas...";
                     return;
                 }
-                dz.innerHTML = '';
-                this.dragSelectedTokens.forEach((tok, index) => {
-                    const span = document.createElement('div');
+                zone.innerHTML = "";
+                this.mobileSelectedWords.forEach(item => {
+                    const span = document.createElement('span');
                     span.className = 'drag-item';
-                    span.innerText = tok.text;
-                    span.onclick = (e) => {
-                        e.stopPropagation();
-                        this.removeTokenAt(index, tok.id);
-                    };
-                    dz.appendChild(span);
+                    span.innerText = item.text;
+                    zone.appendChild(span);
                 });
             }
 
-            removeTokenAt(index, tokenOriginalId) {
-                this.dragSelectedTokens.splice(index, 1);
-                const originalCard = document.querySelector(`.drag-item[data-idx="${tokenOriginalId}"]`);
-                if (originalCard) originalCard.classList.remove('used');
-                this.rebuildDropZone();
+            clearDropZone() {
+                this.mobileSelectedWords = [];
+                document.querySelectorAll('#words-pool-container .drag-item').forEach(item => {
+                    item.classList.remove('used');
+                });
+                document.getElementById('drop-zone-target').innerHTML = "Suelta las palabras aquí o tócalas...";
+            }
+
+            /* SOPORTE MEJORADO PARA DRAG AND DROP NATIVO EN PC */
+            handleDragStart(e, w, id) { 
+                e.dataTransfer.setData("text/plain", w); 
+                e.dataTransfer.setData("element-id", id);
+            }
+            
+            handleDragOver(e) { 
+                e.preventDefault(); 
+                document.getElementById('drop-zone-target').classList.add('hover'); 
+            }
+            
+            handleDragLeave(e) { 
+                document.getElementById('drop-zone-target').classList.remove('hover'); 
+            }
+            
+            handleDrop(e) {
+                e.preventDefault();
+                const zone = document.getElementById('drop-zone-target');
+                zone.classList.remove('hover');
+                
+                const word = e.dataTransfer.getData("text/plain");
+                const id = e.dataTransfer.getData("element-id");
+                
+                if (word && id) {
+                    const originEl = document.getElementById(id);
+                    if (originEl && !originEl.classList.contains('used')) {
+                        originEl.classList.add('used');
+                        this.mobileSelectedWords.push({ id: id, text: word });
+                        this.refreshMobileDropZone();
+                    }
+                }
+            }
+
+            /* EMULACIÓN ADICIONAL PARA PANTALLAS TÁCTILES MÓVILES EXTREMAS */
+            handleTouchStart(e, w, id) {
+                this.activeTouchData = { text: w, id: id };
+            }
+
+            handleTouchEnd(e) {
+                if (this.activeTouchData) {
+                    const originEl = document.getElementById(this.activeTouchData.id);
+                    if (originEl && !originEl.classList.contains('used')) {
+                        originEl.classList.add('used');
+                        this.mobileSelectedWords.push({ id: this.activeTouchData.id, text: this.activeTouchData.text });
+                        this.refreshMobileDropZone();
+                    }
+                    this.activeTouchData = null;
+                }
             }
 
             flowNext() {
-                const levelData = CLASS_DATASET[this.currentLevel];
-                
-                if (this.flowStep === 2) {
-                    const q = levelData.questions[this.currentQuestionIdx];
-                    const nextBtnText = document.getElementById('btn-flow-next').innerText;
-                    
-                    if (nextBtnText.startsWith("Verificar")) {
-                        this.validateQuestionAnswer(q);
+                const data = CLASS_DATASET[this.currentLevel];
+
+                if (this.currentStep === 2) {
+                    const q = this.activeQuestionsOrder[this.currentQuestionIdx];
+                    let isCorrect = false;
+
+                    if (q.type === "multiple-choice" || q.type === "listening-api") {
+                        if (!this.selectedOption) { alert("¡Selecciona una opción!"); return; }
+                        isCorrect = (this.selectedOption === q.correct);
+                    } 
+                    else if (q.type === "drag-drop") {
+                        const res = this.mobileSelectedWords.map(item => item.text.trim());
+                        isCorrect = (JSON.stringify(res) === JSON.stringify(q.correctOrder));
+                    } 
+                    else if (q.type === "writing-validation") {
+                        const txt = document.getElementById('writing-input-box').value.trim().toLowerCase();
+                        isCorrect = q.accepted.some(ans => ans.toLowerCase() === txt.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""));
+                    }
+
+                    const panel = document.getElementById('action-feedback-panel');
+                    const mainMsg = document.getElementById('feedback-main-message');
+                    const expMsg = document.getElementById('feedback-explanation-text');
+
+                    if (isCorrect) {
+                        panel.className = "feedback-panel correct";
+                        mainMsg.innerText = "¡Excelente! Respuesta Correcta ⭐";
+                        expMsg.innerText = q.exp;
+                        
+                        setTimeout(() => {
+                            panel.className = "feedback-panel";
+                            if (this.currentQuestionIdx < 4) {
+                                this.currentQuestionIdx++;
+                                this.renderActiveQuestionSlot();
+                            } else {
+                                this.currentStep = 3; 
+                                this.renderCurrentStepInFlow();
+                            }
+                        }, 1800);
+
                     } else {
-                        if (this.currentQuestionIdx < levelData.questions.length - 1) {
-                            this.currentQuestionIdx++;
-                            this.renderQuestionStep();
-                        } else {
-                            this.flowStep++;
-                            this.executeFlowStep();
-                        }
+                        panel.className = "feedback-panel wrong";
+                        mainMsg.innerText = "¡Inténtalo de nuevo!";
+                        expMsg.innerText = "Analiza bien la estructura afirmativa o la partícula negativa requerida.";
                     }
                     return;
                 }
 
-                if (this.flowStep === 3) {
-                    this.completeLevelSuccess();
+                if (this.currentStep < 4) {
+                    this.currentStep++;
+                    this.renderCurrentStepInFlow();
                 } else {
-                    if (this.flowStep === 0) {
-                        levelData.vocabItems.forEach(item => {
-                            if (!this.player.vocabulary.some(v => v.eng === item.eng)) {
-                                this.player.vocabulary.push(item);
-                            }
-                        });
-                        this.saveProgress();
-                    }
-                    this.flowStep++;
-                    this.executeFlowStep();
+                    this.finalizeLevelCompletion(data);
                 }
             }
 
             flowPrevious() {
-                if (this.flowStep > 0) {
-                    if (this.flowStep === 2 && this.currentQuestionIdx > 0) {
-                        this.currentQuestionIdx--;
-                        this.renderQuestionStep();
-                    } else {
-                        this.flowStep--;
-                        this.executeFlowStep();
+                if (this.currentStep > 0) {
+                    if(this.currentStep === 2) this.currentQuestionIdx = 0;
+                    this.currentStep--;
+                    this.renderCurrentStepInFlow();
+                }
+            }
+
+            finalizeLevelCompletion(levelData) {
+                levelData.vocabItems.forEach(item => {
+                    if (!this.progress.learnedVocabulary.some(v => v.eng.toLowerCase() === item.eng.toLowerCase())) {
+                        this.progress.learnedVocabulary.push(item);
                     }
-                }
-            }
+                });
 
-            validateQuestionAnswer(q) {
-                let userVal = "";
-                let isCorrect = false;
+                this.progress.starsByLevel[this.currentLevel] = 3;
 
-                if (q.type === 'multiple-choice' || q.type === 'listening-api') {
-                    const selected = document.querySelector('.option-card.selected');
-                    if (!selected) { alert("¡Por favor, selecciona una opción!"); return; }
-                    userVal = selected.dataset.selectedVal;
-                    isCorrect = (userVal === q.correct);
-
-                } else if (q.type === 'writing-validation') {
-                    const targetEl = document.getElementById('write-field-target');
-                    if (!targetEl) return;
-                    userVal = targetEl.value.trim().toLowerCase();
-                    if (!userVal) { alert("¡Por favor, escribe tu respuesta!"); return; }
-                    isCorrect = q.accepted.some(ans => ans.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"") === userVal.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""));
-
-                } else if (q.type === 'drag-drop') {
-                    if (this.dragSelectedTokens.length < q.correctOrder.length) { alert("¡Ordena la frase completa!"); return; }
-                    const userOrder = this.dragSelectedTokens.map(t => t.text);
-                    isCorrect = JSON.stringify(userOrder) === JSON.stringify(q.correctOrder);
-                    userVal = userOrder.join(" ");
-                }
-
-                const panel = document.getElementById('action-feedback-panel');
-                const msg = document.getElementById('feedback-main-message');
-                const exp = document.getElementById('feedback-explanation-text');
-
-                panel.className = 'feedback-panel ' + (isCorrect ? 'correct' : 'wrong');
-                msg.innerText = isCorrect ? "🎉 ¡Excelente! Respuesta Correcta" : "❌ Respuesta Incorrecta";
-                exp.innerHTML = `<strong>Explicación:</strong> ${q.exp || ''}`;
-                panel.style.display = 'block';
-
-                if (isCorrect) {
-                    this.player.stars += 5; 
-                    this.saveProgress();
-                }
-
-                document.getElementById('btn-flow-next').innerText = "Continuar ➡️";
-            }
-
-            completeLevelSuccess() {
-                if (!this.player.completedLevels.includes(this.currentLevel)) {
-                    this.player.completedLevels.push(this.currentLevel);
-                }
-                
-                let nextLevel = this.currentLevel + 1;
-                if (nextLevel <= this.totalLevels && !this.player.unlockedLevels.includes(nextLevel)) {
-                    this.player.unlockedLevels.push(nextLevel);
-                }
-
-                this.saveProgress();
-
-                if (this.player.completedLevels.length === this.totalLevels) {
-                    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-                    document.getElementById('view-final').classList.add('active');
-                } else {
+                if (this.currentLevel === this.progress.unlockedLevel && this.progress.unlockedLevel < 10) {
+                    this.progress.unlockedLevel = this.currentLevel + 1;
+                } else if (this.currentLevel === 10) {
+                    this.saveProgressToStorage();
                     this.exitToMap();
-                }
-            }
-
-            renderVocabulary() {
-                const grid = document.getElementById('vocab-cards-grid');
-                grid.innerHTML = '';
-                
-                if (this.player.vocabulary.length === 0) {
-                    grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#888; padding:30px;">Tu bitácora está vacía. ¡Completa niveles en el mapa para recolectar vocabulario! 📚</p>`;
+                    this.switchTab('final');
                     return;
                 }
 
-                this.player.vocabulary.forEach(item => {
+                this.saveProgressToStorage();
+                this.exitToMap();
+            }
+
+            switchTab(tab) {
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+                if (tab === 'map') {
+                    document.getElementById('view-map').classList.add('active');
+                    document.getElementById('tab-map').classList.add('active');
+                    this.renderMapNodes();
+                } else if (tab === 'vocab') {
+                    document.getElementById('view-vocabulary').classList.add('active');
+                    document.getElementById('tab-vocab').classList.add('active');
+                    this.renderVocabularyGrid();
+                } else if (tab === 'final') {
+                    document.getElementById('view-final').classList.add('active');
+                }
+            }
+
+            renderVocabularyGrid() {
+                const grid = document.getElementById('vocab-cards-grid');
+                grid.innerHTML = '';
+                if (this.progress.learnedVocabulary.length === 0) {
+                    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#888;">Completa clases para recolectar palabras.</div>`;
+                    return;
+                }
+                this.progress.learnedVocabulary.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'vocab-card';
                     card.innerHTML = `
                         <div class="vocab-meta">
-                            <h4>${item.eng}</h4>
-                            <p style="color:#666;"><strong>${item.esp}</strong></p>
-                            <p style="font-size:12px; color:var(--text-light)">Pronunciación: /${item.pr}/</p>
-                            <p style="font-size:13px; margin-top:4px; color:#555;">${item.ex}</p>
+                            <h4>${item.eng} <span style="font-size:12px; color:#888;">[${item.pr}]</span></h4>
+                            <div style="color:#555;">🗣️ ${item.esp}</div>
+                            <div style="font-size:12px; font-style:italic; color:#888;">${item.ex}</div>
                         </div>
-                        <button class="audio-icon-btn" onclick="app.speakText('${item.eng}')">🔊</button>
-                    `;
+                        <div class="audio-icon-btn" onclick="app.speakText('${item.eng.replace(/'/g, "\\'")}')">🔊</div>`;
                     grid.appendChild(card);
                 });
             }
 
             downloadVocabularyJSON() {
-                if (this.player.vocabulary.length === 0) {
-                    alert("No tienes vocabulario registrado para exportar.");
-                    return;
-                }
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.player.vocabulary, null, 2));
-                const downloadAnchor = document.createElement('a');
-                downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", "my_vocabulary_adventure.json");
-                document.body.appendChild(downloadAnchor);
-                downloadAnchor.click();
-                downloadAnchor.remove();
+                if(this.progress.learnedVocabulary.length === 0) return;
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.progress.learnedVocabulary, null, 2));
+                const dl = document.createElement('a');
+                dl.setAttribute("href", dataStr);
+                dl.setAttribute("download", "vocabulary.json");
+                dl.click();
             }
 
             speakText(text) {
                 if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel(); 
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'en-US';
-                    utterance.rate = 0.9; 
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    alert("Tu navegador no soporta la API de síntesis de voz.");
-                }
-            }
-
-            resetProgress() {
-                if (confirm("¿Seguro que deseas reiniciar tu progreso por completo? Perderás tus estrellas y vocabulario guardado.")) {
-                    localStorage.removeItem('ea_player_save');
-                    this.player = { stars: 0, unlockedLevels: [1], completedLevels: [], vocabulary: [] };
-                    this.saveProgress();
-                    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-                    document.getElementById('view-map').classList.add('active');
-                    this.init();
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'en-US';
+                    u.rate = 0.85;
+                    window.speechSynthesis.speak(u);
                 }
             }
         }
 
-        const app = new EnglishAdventure();
-        window.onload = () => {
-            app.init();
-        };
+        const app = new EnglishAdventureApp();
+        window.addEventListener('DOMContentLoaded', () => app.init());
     </script>
 </body>
 </html>
